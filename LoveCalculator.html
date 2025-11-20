@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #e63946;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin: 20px 0;
+            width: 300px;
+            text-align: center;
+        }
+        input[type="text"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #ff6f91; /* Pinkish color */
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff3f61; /* Darker pink on hover */
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #5e6e82;
+        }
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>❤️ Love Calculator ❤️</h1>
+    <div class="container">
+        <label for="name1">First Person's Name:</label>
+        <input type="text" id="name1" placeholder="Enter first name" required>
+        <label for="name2">Second Person's Name:</label>
+        <input type="text" id="name2" placeholder="Enter second name" required>
+        <button onclick="calculateLove()">Calculate Love Score</button>
+        <button id="copyButton" style="display: none;" onclick="copyLoveScore()">Copy Love Score</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        let lastLoveScore = '';
+
+        function magicCompute(toProcess) {
+            let res = [];
+            while (toProcess.length > 1) {
+                res.push(toProcess[0] + toProcess[toProcess.length - 1]);
+                toProcess = toProcess.slice(1, -1);
+            }
+            res.push(...toProcess);
+            return res;
+        }
+
+        function calculateLove() {
+            const name1 = document.getElementById("name1").value;
+            const name2 = document.getElementById("name2").value;
+
+            const aggregatedNames = name1 + name2;
+            let aggregatedScore = [];
+
+            let processedNames = aggregatedNames;
+            while (processedNames.length > 0) {
+                aggregatedScore.push(processedNames.split(processedNames[0]).length - 1);
+                processedNames = processedNames.replace(processedNames[0], "");
+            }
+
+            while (aggregatedScore.length > 2) {
+                aggregatedScore = magicCompute(aggregatedScore);
+            }
+
+            let loveScore = parseInt(aggregatedScore.join(''), 10);
+
+            // If score exceeds 100, transform it
+            if (loveScore > 100) {
+                const scoreStr = loveScore.toString();
+                const firstDigit = parseInt(scoreStr[0]);
+                const secondDigit = parseInt(scoreStr[1]);
+                const middleDigit = parseInt(scoreStr[2]);
+
+                loveScore = (firstDigit + secondDigit).toString() + middleDigit;
+                loveScore = Math.min(parseInt(loveScore), 100); // Ensure it doesn't exceed 100
+            } else {
+                loveScore = Math.min(loveScore, 100); // Ensure it doesn't exceed 100
+            }
+
+            lastLoveScore = `${loveScore}%`;
+            document.getElementById("result").innerText = `Your love score is ${lastLoveScore}`;
+            document.getElementById("copyButton").style.display = 'block'; // Show copy button
+        }
+
+        function copyLoveScore() {
+            navigator.clipboard.writeText(lastLoveScore)
+                .then(() => {
+                    alert("Love score copied to clipboard!");
+                })
+                .catch(err => {
+                    console.error("Error copying: ", err);
+                });
+        }
+    </script>
+
+    <footer>
+        © 2025 Gaspard | Built with 💡 and a lot of curiosity.
+    </footer>
+
+</body>
+</html>
