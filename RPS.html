@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rock · Paper · Scissors</title>
+  <style>
+    :root{
+      --bg:#0e0f13;
+      --card:#151824;
+      --card-2:#1a1f2e;
+      --text:#e8ecf1;
+      --muted:#aab3c0;
+      --primary:#6ea8fe;
+      --accent:#ff6b6b;
+      --win:#2ecc71;
+      --lose:#ff5252;
+      --draw:#ffc107;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --glow: 0 0 24px rgba(110,168,254,.45);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1f2440 0%, transparent 50%),
+        radial-gradient(1200px 600px at 110% 110%, #23283f 0%, transparent 50%),
+        var(--bg);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .app{
+      width:100%;
+      max-width:980px;
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)) , var(--card);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 18px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+    }
+    .title{
+      display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.3px;
+    }
+    .title .logo{
+      width:36px;height:36px;border-radius:10px;
+      display:grid;place-items:center;
+      background: radial-gradient(circle at 30% 30%, #6ea8fe, #3c74ff 70%);
+      color:white; font-weight:800; box-shadow: var(--glow);
+    }
+    .controls{display:flex; gap:10px; align-items:center}
+    .btn{
+      appearance:none; border:none; border-radius:10px; padding:10px 14px;
+      color:var(--text); background:var(--card-2);
+      border:1px solid rgba(255,255,255,.08);
+      cursor:pointer; transition:.2s transform, .2s background, .2s border-color, .2s box-shadow;
+    }
+    .btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.18)}
+    .btn.primary{background:linear-gradient(180deg, #3c74ff, #2357ea); box-shadow: var(--glow)}
+    .btn.ghost{background:transparent}
+    .btn:active{transform:translateY(0)}
+    .muted{color:var(--muted); font-size:.92rem}
+
+    .content{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:18px;
+      padding:18px;
+    }
+    @media (max-width: 880px){
+      .content{grid-template-columns: 1fr; gap:14px}
+    }
+
+    .arena{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px; padding:16px; min-height:380px;
+      display:flex; flex-direction:column; gap:14px; position:relative;
+      overflow:hidden;
+    }
+    .arena::after{
+      content:"";
+      position:absolute; inset:auto -30% -30% -30%;
+      height:60%; background: radial-gradient(ellipse at 50% 0%, rgba(110,168,254,.12), rgba(110,168,254,0) 60%);
+      pointer-events:none; filter:blur(8px);
+    }
+    .round-bar{display:flex; justify-content:space-between; align-items:center}
+    .score{
+      display:flex; gap:12px; align-items:center; font-weight:600
+    }
+    .score .pill{
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
+      border-radius:999px; padding:6px 10px; font-size:.94rem
+    }
+
+    .board{
+      flex:1;
+      display:grid;
+      grid-template-columns: 1fr 80px 1fr;
+      align-items:center; justify-items:center;
+      gap:8px;
+    }
+    @media (max-width: 520px){
+      .board{grid-template-columns: 1fr; gap:10px}
+    }
+
+    .vs{
+      font-weight:800; color:#97b4ff; text-shadow:0 6px 18px rgba(60,116,255,.4);
+      letter-spacing:1px;
+    }
+    .side{
+      width:100%; display:flex; flex-direction:column; align-items:center; gap:10px;
+    }
+    .avatar{
+      width:92px; height:92px; border-radius:18px; display:grid; place-items:center;
+      background:linear-gradient(145deg,#212740,#161b2f);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02), 0 12px 30px rgba(0,0,0,.25);
+    }
+
+    .hand{
+      width:160px; height:160px; border-radius:22px; position:relative;
+      background:linear-gradient(180deg, #0f1320, #0b0e18);
+      border:1px solid rgba(255,255,255,.08);
+      display:grid; place-items:center;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      transform:translateZ(0);
+    }
+    @media (max-width:520px){
+      .hand{width:120px;height:120px}
+    }
+    .hand .glow{
+      position:absolute; inset:-40% -40% auto -40%; height:80%;
+      background: radial-gradient(circle at 50% 50%, rgba(110,168,254,.18), transparent 60%);
+      filter:blur(10px);
+    }
+    .glyph{
+      width:70%; aspect-ratio:1; display:block;
+    }
+    /* SVG coloring by type */
+    .glyph.rock { filter: drop-shadow(0 10px 20px rgba(255,255,255,.05)); }
+    .glyph.paper { filter: drop-shadow(0 10px 20px rgba(255,255,255,.05)); }
+    .glyph.scissors { filter: drop-shadow(0 10px 20px rgba(255,255,255,.05)); }
+
+    .result{
+      text-align:center; font-size:1.05rem; color:var(--muted);
+      min-height:28px;
+    }
+    .result.win{color:var(--win)}
+    .result.lose{color:var(--lose)}
+    .result.draw{color:var(--draw)}
+
+    .choices{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:12px;
+    }
+    .choice{
+      display:flex; gap:12px; align-items:center; justify-content:center;
+      background:linear-gradient(180deg, #141a2b, #0f1321);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:10px;
+      cursor:pointer; transition:.18s transform, .18s border-color, .18s box-shadow;
+      user-select:none;
+    }
+    .choice:hover{transform:translateY(-2px); border-color:rgba(255,255,255,.2); box-shadow: var(--glow)}
+    .choice:active{transform:translateY(0)}
+    .choice svg{width:28px;height:28px}
+    .choice span{font-weight:600}
+
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:14px;
+      min-height:380px;
+    }
+    .feed{
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:12px; padding:12px; height:180px; overflow:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size:.92rem; color:#d7deea;
+    }
+    .feed p{margin:0 0 6px}
+    .sep{height:1px; background:rgba(255,255,255,.06); margin: 4px 0}
+
+    .pulse{
+      animation: pulse .8s ease-in-out 3;
+    }
+    @keyframes pulse{
+      0%{transform:scale(1)}
+      50%{transform:scale(1.05)}
+      100%{transform:scale(1)}
+    }
+    .shake{
+      animation: shake .4s ease-in-out;
+    }
+    @keyframes shake{
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
+    }
+    .fade-in{
+      animation: fade .35s ease-out;
+    }
+    @keyframes fade{
+      from{opacity:0; transform:translateY(6px)}
+      to{opacity:1; transform:none}
+    }
+
+    .footer-note{
+      padding:10px 16px; text-align:center; color:var(--muted); font-size:.9rem;
+      border-top:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.00), rgba(255,255,255,.02));
+    }
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:rgba(255,255,255,.08); padding:.1rem .35rem; border-radius:6px; border:1px solid rgba(255,255,255,.12)}
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Rock Paper Scissors">
+    <header>
+      <div class="title">
+        <div class="logo" aria-hidden="true">RPS</div>
+        <div>
+          <div>Rock · Paper · Scissors</div>
+          <div class="muted" id="subtitle">Best of endless — have fun!</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn ghost" id="resetBtn" title="Reset scores">Reset</button>
+        <button class="btn primary" id="playBtn" title="Start a new round">Play</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="arena">
+        <div class="round-bar">
+          <div class="score">
+            <div class="pill">You: <span id="youScore">0</span></div>
+            <div class="pill">CPU: <span id="cpuScore">0</span></div>
+            <div class="pill">Draws: <span id="drawScore">0</span></div>
+          </div>
+          <div class="muted">Round <span id="roundNum">1</span></div>
+        </div>
+
+        <div class="board">
+          <div class="side">
+            <div class="avatar" aria-hidden="true">🙂</div>
+            <div class="hand" id="yourHand">
+              <div class="glow"></div>
+              <svg class="glyph" id="yourGlyph" viewBox="0 0 128 128" aria-label="Your choice"></svg>
+            </div>
+          </div>
+
+          <div class="vs">VS</div>
+
+          <div class="side">
+            <div class="avatar" aria-hidden="true">🤖</div>
+            <div class="hand" id="cpuHand">
+              <div class="glow"></div>
+              <svg class="glyph" id="cpuGlyph" viewBox="0 0 128 128" aria-label="CPU choice"></svg>
+            </div>
+          </div>
+        </div>
+
+        <div id="result" class="result">Click Play or choose a move to begin.</div>
+        <div class="choices">
+          <button class="choice" data-move="rock" title="Rock (R)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#c9d6ff" d="M7 21h10a4 4 0 0 0 4-4v-5a3 3 0 0 0-3-3h-1V7a3 3 0 0 0-3-3h-1a3 3 0 0 0-3 3v2H9a3 3 0 0 0-3 3v7a2 2 0 0 0 1 1.732z"/></svg>
+            <span>Rock</span>
+          </button>
+          <button class="choice" data-move="paper" title="Paper (P)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#c9ffd9" d="M6 3h8l5 5v9a4 4 0 0 1-4 4H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/></svg>
+            <span>Paper</span>
+          </button>
+          <button class="choice" data-move="scissors" title="Scissors (S)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ffd1f2" d="M10 7a3 3 0 1 0-3 3l3 2 3-2a3 3 0 1 0-3-3zm-4 9a3 3 0 1 0 3 3l3-2 3 2a3 3 0 1 0 3-3l-6-4z"/></svg>
+            <span>Scissors</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div>
+          <div style="font-weight:700">How to play</div>
+          <div class="muted">Pick Rock, Paper, or Scissors. Best move wins: Rock beats Scissors, Paper beats Rock, Scissors beats Paper.</div>
+        </div>
+        <div class="sep"></div>
+        <div class="feed" id="feed" aria-live="polite"></div>
+        <div class="sep"></div>
+        <div class="muted">Shortcuts: <span class="kbd">R</span> Rock · <span class="kbd">P</span> Paper · <span class="kbd">S</span> Scissors · <span class="kbd">Space</span> Play</div>
+      </aside>
+    </div>
+
+    <div class="footer-note">Inspired by your Python version. No installs needed—just play!</div>
+  </div>
+
+  <script>
+    // Game state
+    const moves = ["rock","paper","scissors"];
+    let scores = { you:0, cpu:0, draw:0 };
+    let round = 1;
+
+    // Elements
+    const youScoreEl = document.getElementById("youScore");
+    const cpuScoreEl = document.getElementById("cpuScore");
+    const drawScoreEl = document.getElementById("drawScore");
+    const roundEl = document.getElementById("roundNum");
+    const resultEl = document.getElementById("result");
+    const feedEl = document.getElementById("feed");
+    const yourGlyph = document.getElementById("yourGlyph");
+    const cpuGlyph = document.getElementById("cpuGlyph");
+    const yourHand = document.getElementById("yourHand");
+    const cpuHand = document.getElementById("cpuHand");
+    const playBtn = document.getElementById("playBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const choiceBtns = Array.from(document.querySelectorAll(".choice"));
+
+    // Light sounds via WebAudio (no external files)
+    const AudioKit = (() => {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      function beep(freq=440, dur=0.08, type="sine", vol=0.03) {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = type; o.frequency.value = freq;
+        g.gain.value = vol;
+        o.connect(g).connect(ctx.destination);
+        o.start();
+        o.stop(ctx.currentTime + dur);
+      }
+      return {
+        win(){beep(660, .09, "triangle", .05); setTimeout(()=>beep(880,.12,"triangle", .05), 90)},
+        lose(){beep(180, .12, "sawtooth", .05)},
+        draw(){beep(380, .06, "sine", .04)},
+        click(){beep(520, .05, "square", .03)}
+      }
+    })();
+
+    // SVG icons for hands (simple, clean)
+    function svgFor(move){
+      if(!move){ return ""; }
+      if(move==="rock") return `<defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9bb4ff"/><stop offset="1" stop-color="#557dff"/></linearGradient></defs>
+        <g transform="translate(8,10)">
+          <path fill="url(#g1)" d="M30 92h52a18 18 0 0 0 18-18V46a12 12 0 0 0-12-12h-6V24a12 12 0 0 0-12-12h-4a12 12 0 0 0-12 12v10H46a12 12 0 0 0-12 12v34a12 12 0 0 0  -4  -?"></path>
+        </g>`;
+      // The above path placeholder would be too complex to handcraft perfectly; use simplified shapes:
+    }
+
+    // Replace with cleaner, stylized icons:
+    function glyph(move){
+      if(move==="rock"){
+        return `
+          <defs>
+            <linearGradient id="rockGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#9bb4ff"/><stop offset="1" stop-color="#4a74ff"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <path fill="url(#rockGrad)" d="M26 98h76c9 0 16-7 16-16V58c0-7-6-13-13-13h-4V36c0-9-7-16-16-16h-6c-9 0-16 7-16 16v9H50c-9 0-16 7-16 16v21c0 9-3 16-8 16z" />
+          </g>
+        `;
+      }
+      if(move==="paper"){
+        return `
+          <defs>
+            <linearGradient id="paperGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#b9ffd0"/><stop offset="1" stop-color="#5edb97"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <rect x="28" y="18" width="72" height="92" rx="10" fill="url(#paperGrad)"></rect>
+            <rect x="38" y="34" width="52" height="8" rx="4" fill="rgba(0,0,0,.15)"></rect>
+            <rect x="38" y="52" width="52" height="8" rx="4" fill="rgba(0,0,0,.12)"></rect>
+            <rect x="38" y="70" width="40" height="8" rx="4" fill="rgba(0,0,0,.1)"></rect>
+          </g>
+        `;
+      }
+      if(move==="scissors"){
+        return `
+          <defs>
+            <linearGradient id="scGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffc1ec"/><stop offset="1" stop-color="#ff6fd8"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <circle cx="40" cy="44" r="16" fill="url(#scGrad)"/>
+            <circle cx="64" cy="44" r="16" fill="url(#scGrad)"/>
+            <path d="M56 64 L100 92" stroke="#ff8adf" stroke-width="12" stroke-linecap="round"/>
+            <path d="M40 84 L96 40" stroke="#ff8adf" stroke-width="12" stroke-linecap="round"/>
+          </g>
+        `;
+      }
+      return "";
+    }
+
+    function setGlyph(target, move){
+      target.setAttribute("class", `glyph ${move||""}`);
+      target.innerHTML = glyph(move);
+    }
+
+    function cpuPick(){
+      const idx = Math.floor(Math.random()*3);
+      return moves[idx];
+    }
+
+    function decide(your, cpu){
+      if(your===cpu) return "draw";
+      if(
+        (your==="rock" && cpu==="scissors") ||
+        (your==="paper" && cpu==="rock") ||
+        (your==="scissors" && cpu==="paper")
+      ) return "win";
+      return "lose";
+    }
+
+    function updateScores(outcome){
+      if(outcome==="win") scores.you++;
+      else if(outcome==="lose") scores.cpu++;
+      else scores.draw++;
+      youScoreEl.textContent = scores.you;
+      cpuScoreEl.textContent = scores.cpu;
+      drawScoreEl.textContent = scores.draw;
+    }
+
+    function announce(text, cls){
+      resultEl.className = "result " + (cls||"");
+      resultEl.textContent = text;
+    }
+
+    function logFeed(line){
+      const p = document.createElement("p");
+      p.textContent = `[Round ${round}] ${line}`;
+      feedEl.prepend(p);
+    }
+
+    function animateHands(outcome){
+      yourHand.classList.remove("pulse","shake");
+      cpuHand.classList.remove("pulse","shake");
+      void yourHand.offsetWidth; // reflow
+      if(outcome==="win"){
+        yourHand.classList.add("pulse");
+        cpuHand.classList.add("shake");
+      }else if(outcome==="lose"){
+        yourHand.classList.add("shake");
+        cpuHand.classList.add("pulse");
+      }else{
+        yourHand.classList.add("pulse");
+        cpuHand.classList.add("pulse");
+      }
+    }
+
+    function playRound(yourMove){
+      const cpuMove = cpuPick();
+      setGlyph(yourGlyph, yourMove);
+      setGlyph(cpuGlyph, cpuMove);
+
+      const outcome = decide(yourMove, cpuMove);
+      updateScores(outcome);
+      round++;
+      roundEl.textContent = round;
+
+      if(outcome==="win"){ announce("You win!", "win"); AudioKit.win(); }
+      else if(outcome==="lose"){ announce("You lose!", "lose"); AudioKit.lose(); }
+      else { announce("It's a draw!", "draw"); AudioKit.draw(); }
+
+      animateHands(outcome);
+      logFeed(`You: ${yourMove} — CPU: ${cpuMove} → ${outcome.toUpperCase()}`);
+    }
+
+    function randomIntro(){
+      const samples = [
+        "Ready when you are!",
+        "Tip: Use keyboard shortcuts R / P / S.",
+        "Can you beat the bot?",
+        "Rock crushes Scissors. Paper covers Rock.",
+        "Streak time!"
+      ];
+      document.getElementById("subtitle").textContent = samples[Math.floor(Math.random()*samples.length)];
+    }
+
+    // Event wiring
+    playBtn.addEventListener("click", () => {
+      AudioKit.click();
+      // Auto-pick for you to mimic "Play" like the Python replay loop; or choose if already set.
+      const yourMove = moves[Math.floor(Math.random()*3)];
+      playRound(yourMove);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      scores = { you:0, cpu:0, draw:0 };
+      round = 1;
+      youScoreEl.textContent = 0; cpuScoreEl.textContent = 0; drawScoreEl.textContent = 0;
+      roundEl.textContent = 1;
+      setGlyph(yourGlyph, null);
+      setGlyph(cpuGlyph, null);
+      announce("Scores reset. Click Play or choose a move.", "");
+      feedEl.innerHTML = "";
+      randomIntro();
+      AudioKit.click();
+    });
+
+    choiceBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        AudioKit.click();
+        const move = btn.getAttribute("data-move");
+        playRound(move);
+      });
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener("keydown", (e) => {
+      if(e.code==="Space"){ e.preventDefault(); playBtn.click(); }
+      if(e.key.toLowerCase()==="r") choiceBtns[0].click();
+      if(e.key.toLowerCase()==="p") choiceBtns[1].click();
+      if(e.key.toLowerCase()==="s") choiceBtns[2].click();
+    });
+
+    // Initial
+    randomIntro();
+    announce("Click Play or choose a move to begin.","");
+  </script>
+</body>
+</html>
