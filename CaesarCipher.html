@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caesar Cipher Encoder & Decoder</title>
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #0b0c10, #1f2833);
+    color: #c5c6c7;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    padding: 30px 10px;
+    color: #66fcf1;
+    text-shadow: 0 0 10px #45a29e;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { text-shadow: 0 0 8px #45a29e; }
+    to { text-shadow: 0 0 20px #66fcf1; }
+  }
+
+  .container {
+    background-color: rgba(31, 40, 51, 0.9);
+    border-radius: 15px;
+    padding: 30px;
+    width: 95%;
+    max-width: 500px;
+    box-shadow: 0 0 20px rgba(102, 252, 241, 0.4);
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: 600;
+    display: block;
+    margin-top: 20px;
+  }
+
+  input, select, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
+  input, textarea, select {
+    background-color: #0b0c10;
+    color: #66fcf1;
+    border: 1px solid #45a29e;
+  }
+
+  textarea {
+    resize: none;
+    height: 80px;
+  }
+
+  button {
+    background: #66fcf1;
+    color: #0b0c10;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #45a29e;
+  }
+
+  .result {
+    background-color: #0b0c10;
+    color: #66fcf1;
+    margin-top: 25px;
+    padding: 15px;
+    border-radius: 8px;
+    min-height: 50px;
+    border: 1px solid #45a29e;
+    font-family: monospace;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: auto;
+    padding: 20px;
+    color: #c5c6c7;
+    font-size: 0.9rem;
+  }
+
+  footer span {
+    color: #66fcf1;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧩 Caesar Cipher</h1>
+  <h3>Encode & Decode Text Instantly</h3>
+</header>
+
+<div class="container">
+  <label for="mode">Select Mode</label>
+  <select id="mode">
+    <option value="encode">Encode (Encrypt)</option>
+    <option value="decode">Decode (Decrypt)</option>
+  </select>
+
+  <label for="message">Message</label>
+  <textarea id="message" placeholder="Type your message here..."></textarea>
+
+  <label for="shift">Shift Number</label>
+  <input type="number" id="shift" value="3" min="0" max="25">
+
+  <button id="processBtn">Process</button>
+
+  <div class="result" id="result">Result will appear here...</div>
+</div>
+
+<footer>
+  Created by <span>Gaspard</span>
+</footer>
+
+<script>
+  function caesarCipher(text, shift, mode) {
+    const alphabet = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    let result = "";
+
+    if (mode === "decode") shift *= -1;
+
+    for (let char of text) {
+      const lowerChar = char.toLowerCase();
+
+      if (alphabet.includes(lowerChar)) {
+        const newIndex = (alphabet.indexOf(lowerChar) + shift + 26) % 26;
+        const newChar = alphabet[newIndex];
+        result += (char === lowerChar) ? newChar : newChar.toUpperCase();
+      } else if (numbers.includes(char)) {
+        const newIndex = (numbers.indexOf(char) + shift + 10) % 10;
+        result += numbers[newIndex];
+      } else {
+        result += char;
+      }
+    }
+    return result;
+  }
+
+  document.getElementById("processBtn").addEventListener("click", () => {
+    const mode = document.getElementById("mode").value;
+    const message = document.getElementById("message").value;
+    const shift = parseInt(document.getElementById("shift").value) || 0;
+
+    if (message.trim() === "") {
+      document.getElementById("result").textContent = "⚠️ Please enter a message.";
+      return;
+    }
+
+    const output = caesarCipher(message, shift, mode);
+    document.getElementById("result").textContent = `Here's the ${mode}d result:\n${output}`;
+  });
+</script>
+
+</body>
+</html>
