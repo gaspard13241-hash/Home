@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Treasure Island</title>
+<style>
+  :root{
+    --bg:#06131a;
+    --sea:#0a2a33;
+    --sand:#c9a96a;
+    --gold:#f7d768;
+    --accent:#ff6b6b;
+    --success:#24d39f;
+    --text:#e9f1f7;
+    --muted:#a8c0c7;
+    --card:#0d222b;
+    --card-2:#0f2833;
+    --btn:#0ea5e9;
+    --btn-dark:#0b7db2;
+    --danger:#ef4444;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    color:var(--text);
+    background: radial-gradient(1000px 600px at 50% -10%, #0b2a36 0%, var(--bg) 60%, #000 100%);
+    overflow:hidden;
+  }
+
+  /* Scene container */
+  .viewport{
+    position:relative;
+    height:100%;
+    width:100%;
+    display:grid;
+    grid-template-rows: 1fr auto;
+  }
+
+  /* Stylized horizon scene */
+  .scene{
+    position:relative;
+    overflow:hidden;
+  }
+  .sky{
+    position:absolute; inset:0;
+    background:linear-gradient(#08202a, #0a2e3b 40%, #0b2a36 60%);
+  }
+  .stars, .stars2{
+    position:absolute; inset:0;
+    background-repeat:repeat;
+    opacity:.5;
+    animation: drift 120s linear infinite;
+    pointer-events:none;
+  }
+  .stars{
+    background-image: radial-gradient(2px 2px at 20% 30%, #cffafe 40%, transparent 41%),
+                      radial-gradient(1.5px 1.5px at 70% 10%, #e0f2fe 40%, transparent 41%),
+                      radial-gradient(1.5px 1.5px at 85% 60%, #bae6fd 40%, transparent 41%),
+                      radial-gradient(1.5px 1.5px at 40% 70%, #a5f3fc 40%, transparent 41%);
+    background-size: 600px 400px;
+  }
+  .stars2{
+    background-image: radial-gradient(1.5px 1.5px at 10% 50%, #c7f9ff 40%, transparent 41%),
+                      radial-gradient(1.5px 1.5px at 60% 80%, #b3ecff 40%, transparent 41%),
+                      radial-gradient(1.5px 1.5px at 90% 25%, #e0fbff 40%, transparent 41%);
+    background-size: 800px 600px;
+    animation-duration: 160s;
+    opacity:.35;
+  }
+  @keyframes drift { from{background-position:0 0} to{background-position:1000px 0} }
+
+  .moon{
+    position:absolute;
+    top:6vmin; left:8vmin;
+    width:10vmin; height:10vmin; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #d9f0ff 40%, #b3daea 60%, #9cc7d8 75%, #86b3c4 100%);
+    box-shadow:0 0 30px 8px rgba(255,255,255,.12);
+  }
+
+  .ocean{
+    position:absolute; left:0; right:0; bottom:0; height:38%;
+    background:linear-gradient(#113a46, var(--sea));
+    overflow:hidden;
+  }
+  .wave{
+    position:absolute; left:-50%; width:200%; height:60%;
+    border-radius: 50%;
+    filter: blur(6px) saturate(120%);
+    opacity:.35;
+    animation: wave 18s ease-in-out infinite alternate;
+  }
+  .wave:nth-child(1){ bottom:40%; background:#145062; animation-duration:22s }
+  .wave:nth-child(2){ bottom:25%; background:#0f4251; animation-duration:18s }
+  .wave:nth-child(3){ bottom:10%; background:#0c3846; animation-duration:14s }
+  @keyframes wave { from{transform:translateX(0)} to{transform:translateX(-25%)} }
+
+  .beach{
+    position:absolute; left:-5%; right:-5%; bottom:-12%;
+    height:36%;
+    background: radial-gradient(120% 60% at 50% 110%, #b78e4d 0%, var(--sand) 35%, #b99859 60%, #987b43 100%);
+    transform: rotate(-2deg);
+    box-shadow: 0 -20px 40px rgba(0,0,0,.3) inset;
+  }
+
+  /* Decorative ASCII stone gate inspired frame */
+  .gate{
+    position:absolute; top:3vmin; right:3vmin; left:3vmin;
+    padding:1rem;
+    border:2px dashed rgba(200,230,240,.18);
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(13,34,43,.7), rgba(10,30,36,.45));
+    backdrop-filter: blur(6px);
+  }
+
+  /* Game card */
+  .card{
+    position:relative;
+    margin: 10vmin auto 0;
+    width:min(900px, 92vw);
+    background: linear-gradient(180deg, var(--card), var(--card-2));
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    box-shadow:
+      0 10px 30px rgba(0,0,0,.45),
+      0 0 0 1px rgba(255,255,255,.04) inset;
+    overflow:hidden;
+  }
+
+  .card-header{
+    padding:1rem 1.25rem;
+    display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+  }
+  .dot{width:10px; height:10px; border-radius:50%;}
+  .dot.red{background:#ef4444}
+  .dot.amber{background:#f59e0b}
+  .dot.green{background:#22c55e}
+  .title{
+    margin-left:.25rem; font-weight:700; letter-spacing:.3px;
+  }
+
+  .ascii{
+    font-family: "SFMono-Regular", Menlo, Consolas, Monaco, ui-monospace, monospace;
+    white-space: pre;
+    line-height: 1.1;
+    font-size: clamp(8px, 1.6vw, 12px);
+    color:#d3ecf6;
+    opacity:.85;
+    padding:1rem;
+    max-height: 26vh;
+    overflow:auto;
+    background:linear-gradient(180deg, rgba(10,30,36,.35), rgba(10,30,36,.1));
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+
+  .content{
+    padding: clamp(14px, 3vmin, 22px);
+    display:grid; gap:1rem;
+  }
+
+  .story{
+    font-size: clamp(16px, 2.6vmin, 20px);
+    line-height:1.5;
+    color:var(--text);
+    min-height: 3lh;
+  }
+  .muted{ color: var(--muted) }
+
+  .choices{
+    display:flex; flex-wrap:wrap; gap:.75rem;
+  }
+  button.choice{
+    appearance:none; border:none; cursor:pointer;
+    padding:.8rem 1rem;
+    border-radius:12px;
+    background: linear-gradient(180deg, #0e7fb1, var(--btn));
+    color:white; font-weight:700; letter-spacing:.2px;
+    box-shadow: 0 6px 16px rgba(14,165,233,.35), 0 0 0 1px rgba(255,255,255,.05) inset;
+    transition: transform .06s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  button.choice:hover{ transform: translateY(-1px); filter:saturate(120%) }
+  button.choice:active{ transform: translateY(1px) }
+  button.secondary{
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    color:#cbd5e1; box-shadow: 0 6px 16px rgba(2,6,23,.45), 0 0 0 1px rgba(148,163,184,.18) inset;
+  }
+  button.danger{
+    background: linear-gradient(180deg, #b91c1c, #ef4444);
+    box-shadow: 0 6px 16px rgba(239,68,68,.35), 0 0 0 1px rgba(255,255,255,.05) inset;
+  }
+  button.success{
+    background: linear-gradient(180deg, #10b981, #22c55e);
+    box-shadow: 0 6px 16px rgba(34,197,94,.35), 0 0 0 1px rgba(255,255,255,.05) inset;
+  }
+
+  .footer{
+    padding:.75rem 1rem;
+    font-size:.9rem;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  /* Toast */
+  .toast{
+    position: fixed; left:50%; transform:translateX(-50%);
+    bottom: 16px;
+    background: rgba(15, 23, 42, .9);
+    color:#fff; padding:.6rem .9rem; border-radius:10px;
+    border:1px solid rgba(255,255,255,.1);
+    font-size:.9rem;
+    opacity:0; pointer-events:none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(-6px) }
+
+  /* Confetti for win */
+  .confetti{
+    position: fixed; inset:0; pointer-events:none; overflow:hidden;
+  }
+  .confetti i{
+    position:absolute; width:8px; height:14px; border-radius:2px;
+    animation: fall 2500ms linear forwards;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-10vh) rotate(0deg) }
+    100% { transform: translateY(120vh) rotate(720deg) }
+  }
+
+  /* Responsive tweaks */
+  @media (max-width:480px){
+    .card{ margin-top: 6vmin }
+    .ascii{ max-height: 22vh }
+  }
+</style>
+</head>
+<body>
+  <div class="viewport">
+    <div class="scene">
+      <div class="sky"></div>
+      <div class="stars"></div>
+      <div class="stars2"></div>
+      <div class="moon"></div>
+      <div class="ocean">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+      </div>
+      <div class="beach"></div>
+
+      <div class="gate">
+        <div class="card" role="application" aria-label="Treasure Island Text Adventure">
+          <div class="card-header">
+            <div class="dot red"></div>
+            <div class="dot amber"></div>
+            <div class="dot green"></div>
+            <div class="title">Treasure Island</div>
+            <div class="muted" style="margin-left:auto">A tiny text adventure</div>
+          </div>
+
+          <div class="ascii" aria-hidden="true">
+        *******************************************************************************
+                  |                   |                  |                     |
+        _________|________________.=""_;=.______________|_____________________|_______
+        |                   |  ,-"_,=""     `"=.|                  |
+        |___________________|__"=._o`"-._        `"=.______________|___________________
+                  |                `"=._o`"=._      _`"=._                     |
+        _________|_____________________:=._o "=._."_.-="'"=.__________________|_______
+        |                   |    __.--" , ; `"=._o." ,-"""-._ ".   |
+        |___________________|_._"  ,. .` ` `` ,  `"-._"-._   ". '__|___________________
+                  |           |o`"=._` , "` `; .". ,  "-._"-._; ;              |
+        _________|___________| ;`-.o`"=._; ." ` '`."\` . "-._ /_______________|_______
+        |                   | |o;    `"-.o`"=._``  '` " ,__.--o;   |
+        |___________________|_| ;     (#) `-.o `"=.`_.--"_o.-; ;___|___________________
+        ____/______/______/___|o;._    "      `".o|o_.--"    ;o;____/______/______/____
+        /______/______/______/_"=._o--._        ; | ;        ; ;/______/______/______/_
+        ____/______/______/______/__"=._o--._   ;o|o;     _._;o;____/______/______/____
+        /______/______/______/______/____"=._o._; | ;_.--"o.--"_/______/______/______/_
+        ____/______/______/______/______/_____"=.o|o_.--""___/______/______/______/____
+        /______/______/______/______/______/______/______/______/______/______/________
+        *******************************************************************************
+          </div>
+
+          <div class="content">
+            <div id="story" class="story">Do you want to play Treasure Island? Tap Start.</div>
+            <div id="choices" class="choices">
+              <button class="choice success" data-action="start">Start</button>
+              <button class="choice secondary" data-action="quit">Quit</button>
+            </div>
+          </div>
+
+          <div class="footer">
+            Tip: choices mirror the original Python adventure. You can always Restart.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<script>
+(function(){
+  const story = document.getElementById('story');
+  const choices = document.getElementById('choices');
+  const toast = document.getElementById('toast');
+  const confettiRoot = document.getElementById('confetti');
+
+  // Simple audio beeps (WebAudio) without external assets
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const beep = (type='sine', freq=600, dur=0.08, vol=0.05) => {
+    const t0 = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = vol;
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t0);
+    o.stop(t0 + dur);
+  };
+  const chime = () => { beep('triangle',660,.05,.05); setTimeout(()=>beep('sine',880,.07,.05),70); };
+  const lose = () => { beep('sawtooth',440,.09,.06); setTimeout(()=>beep('sawtooth',320,.12,.06),90); };
+
+  function showToast(msg, timeout=1600){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), timeout);
+  }
+
+  function clearChoices(){
+    choices.innerHTML = '';
+  }
+  function addChoice(label, className, onClick){
+    const btn = document.createElement('button');
+    btn.className = 'choice ' + (className||'');
+    btn.textContent = label;
+    btn.addEventListener('click', onClick, {once:true});
+    choices.appendChild(btn);
+  }
+
+  function typeText(text, speed=18){
+    // Typewriter effect
+    let i = 0;
+    story.textContent = '';
+    const interval = setInterval(()=>{
+      story.textContent += text.charAt(i++);
+      if(i >= text.length) clearInterval(interval);
+    }, speed);
+  }
+
+  function confettiBurst(){
+    for(let i=0;i<120;i++){
+      const piece = document.createElement('i');
+      const hue = Math.floor(Math.random()*360);
+      piece.style.background = `hsl(${hue} 90% 60%)`;
+      piece.style.left = Math.random()*100 + 'vw';
+      piece.style.transform = `translateY(-10vh) rotate(${Math.random()*360}deg)`;
+      piece.style.animationDelay = (Math.random()*400) + 'ms';
+      piece.style.animationDuration = (1800 + Math.random()*1000) + 'ms';
+      confettiRoot.appendChild(piece);
+      setTimeout(()=>piece.remove(), 3000);
+    }
+  }
+
+  // Game states
+  const s = {
+    start(){
+      typeText("Welcome to Treasure Island! Your mission is to find the treasure. Be careful.");
+      clearChoices();
+      addChoice('Begin', 'success', ()=>{
+        chime();
+        s.step1();
+      });
+      addChoice('Quit', 'secondary', ()=> s.quit());
+    },
+    quit(){
+      typeText("Maybe next time. Refresh or press Restart to play.");
+      clearChoices();
+      addChoice('Restart', '', ()=> s.play());
+    },
+    play(){
+      typeText("Do you want to play Treasure Island? Tap Start.");
+      clearChoices();
+      addChoice('Start', 'success', ()=> s.start());
+      addChoice('Quit', 'secondary', ()=> s.quit());
+    },
+    step1(){
+      typeText('You arrive on the island. What do you want to visit first: the mountain or the bay?');
+      clearChoices();
+      addChoice('Mountain', 'danger', ()=>{
+        lose();
+        typeText('You reach the mountains... You freeze to death! GAME OVER.');
+        clearChoices();
+        addChoice('Restart', '', ()=> s.play());
+        showToast('Game Over ❄️');
+      });
+      addChoice('Bay', '', ()=> s.step2());
+    },
+    step2(){
+      typeText('At the bay, you see a campfire to your left and a boat to your right.');
+      clearChoices();
+      addChoice('Left (Campfire)', 'danger', ()=>{
+        lose();
+        typeText("You meet a band of awkward-looking monsters like bokoblins. You run, but they catch up! GAME OVER.");
+        clearChoices();
+        addChoice('Restart', '', ()=> s.play());
+        showToast('Game Over 👹');
+      });
+      addChoice('Right (Boat)', '', ()=> s.step3Intro());
+    },
+    step3Intro(){
+      typeText("You stand before the boat. In black letters: ONLY THE WORTHY SHALL PASS HERE. Ahead are three cabins: Jack, Josh, and Jhon.");
+      clearChoices();
+      addChoice('Enter Josh', 'danger', ()=> s.josh());
+      addChoice('Enter Jack', '', ()=> s.jack());
+      addChoice('Enter Jhon', '', ()=> s.jhon());
+    },
+    josh(){
+      lose();
+      typeText("A ghost appears before you. You tremble as it approaches and... swallows you! GAME OVER.");
+      clearChoices();
+      addChoice('Restart', '', ()=> s.play());
+      showToast('Game Over 👻');
+    },
+    jhon(){
+      lose();
+      typeText("Inside Jhon's cabin, a treasure chest gleams. You open it—gold! Suddenly, a horde of spikes falls on you! GAME OVER.");
+      clearChoices();
+      addChoice('Restart', '', ()=> s.play());
+      showToast('Game Over ☠️');
+    },
+    jack(){
+      chime();
+      typeText("You enter Jack's cabin and admire huge quantities of gold and jewels! You Won!");
+      clearChoices();
+      addChoice('Celebrate', 'success', ()=>{
+        confettiBurst();
+        showToast('You Won! 🏆');
+      });
+      addChoice('Play Again', '', ()=> s.play());
+    }
+  };
+
+  // Global restart button via keyboard (R) and simple focus aid
+  window.addEventListener('keydown', (e)=>{
+    if(e.key.toLowerCase() === 'r'){
+      s.play();
+      showToast('Restarted');
+    }
+  });
+
+  // Initial screen
+  s.play();
+
+  // Make buttons accessible by Enter/Space on focus (default works, but we beep)
+  choices.addEventListener('click', ()=> beep('sine',520,.03,.03));
+})();
+</script>
+</body>
+</html>
