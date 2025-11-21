@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gas.Py Calculator</title>
+<style>
+  body {
+    background: radial-gradient(circle at top left, #1e1e2f, #121212);
+    color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 10px;
+  }
+
+  .calculator {
+    background: linear-gradient(180deg, #24243e, #302b63, #0f0c29);
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    padding: 20px;
+    width: 320px;
+    text-align: center;
+    animation: pop 0.8s ease;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .screen {
+    background: #000;
+    color: #00ff99;
+    font-size: 1.6rem;
+    height: 60px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    text-align: right;
+    box-shadow: inset 0 0 10px #00ffaa33;
+    overflow: hidden;
+  }
+
+  .buttons {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  button {
+    font-size: 1.2rem;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #2b2b4f;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    background: #3a3a66;
+    transform: scale(1.05);
+  }
+
+  button.operator {
+    background: #ff4081;
+  }
+
+  button.operator:hover {
+    background: #ff5e91;
+  }
+
+  button.equal {
+    background: #00c853;
+  }
+
+  button.equal:hover {
+    background: #00e676;
+  }
+
+  .footer {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #bbbbbb;
+    text-align: center;
+  }
+
+  .title {
+    font-weight: bold;
+    color: #00fff2;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+  <div class="title">Gas.Py Calculator</div>
+  <div class="screen" id="display">0</div>
+  <div class="buttons">
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button class="operator" onclick="press('+')">+</button>
+
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button class="operator" onclick="press('-')">−</button>
+
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button class="operator" onclick="press('*')">×</button>
+
+    <button onclick="press('.')">.</button>
+    <button onclick="press('0')">0</button>
+    <button class="equal" onclick="calculate()">=</button>
+    <button class="operator" onclick="press('/')">÷</button>
+
+    <button style="grid-column: span 4; background:#ff1744;" onclick="clearDisplay()">Clear</button>
+  </div>
+</div>
+
+<div class="footer">© 2025 Gaspard | Built with 💡 and a lot of curiosity.</div>
+
+<script>
+  let display = document.getElementById('display');
+  let currentInput = '';
+
+  function press(value) {
+    if (display.innerText === '0' && value !== '.') {
+      currentInput = value;
+    } else {
+      currentInput += value;
+    }
+    display.innerText = currentInput;
+  }
+
+  function calculate() {
+    try {
+      const result = eval(currentInput.replace('÷', '/').replace('×', '*'));
+      display.innerText = result;
+      currentInput = result.toString();
+    } catch (error) {
+      display.innerText = 'Error';
+      currentInput = '';
+    }
+  }
+
+  function clearDisplay() {
+    currentInput = '';
+    display.innerText = '0';
+  }
+</script>
+
+</body>
+</html>
