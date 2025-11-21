@@ -6,17 +6,17 @@
   <title>Gaspard's Games & Tools</title>
   <style>
     :root {
-      --bg-color: #0d0d0d;
-      --accent: #00fff0;
-      --text-color: #ffffff;
-      --card-bg: #1a1a1a;
+      --bg: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+      --accent: #00ffe1;
+      --text: #fff;
+      --card-bg: #161616;
+      --shadow: rgba(0, 255, 200, 0.3);
     }
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: radial-gradient(circle at center, #111 0%, #000 100%);
-      color: var(--text-color);
       margin: 0;
-      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -24,12 +24,12 @@
     }
     header {
       text-align: center;
-      padding: 2rem 1rem 1rem;
+      padding: 2.2rem 1rem 1rem;
     }
     header h1 {
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       color: var(--accent);
-      text-shadow: 0 0 10px var(--accent);
+      text-shadow: 0 0 15px var(--accent);
       margin-bottom: 0.5rem;
     }
     header p {
@@ -38,7 +38,7 @@
     }
     .container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1.5rem;
       width: 90%;
       max-width: 1100px;
@@ -46,48 +46,58 @@
     }
     .card {
       background: var(--card-bg);
-      border: 1px solid #222;
-      border-radius: 10px;
-      padding: 1.5rem;
+      border-radius: 12px;
+      padding: 1.8rem 1.2rem;
       text-align: center;
+      border: 1px solid #222;
+      box-shadow: 0 0 15px rgba(0, 255, 200, 0.1);
       transition: all 0.3s ease;
-      box-shadow: 0 0 15px rgba(0, 255, 240, 0.1);
     }
     .card:hover {
+      transform: translateY(-6px);
       border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(0, 255, 240, 0.4);
-      transform: translateY(-4px);
+      box-shadow: 0 0 20px var(--shadow);
     }
-    .card h2 {
+    .icon {
+      font-size: 3rem;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+      transition: transform 0.3s;
+    }
+    .card:hover .icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+    h2 {
+      color: var(--accent);
       font-size: 1.3rem;
       margin-bottom: 0.5rem;
-      color: var(--accent);
     }
-    .card p {
+    p {
       font-size: 0.95rem;
-      line-height: 1.4;
       opacity: 0.9;
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
+      line-height: 1.4;
     }
     .btn {
       display: inline-block;
       text-decoration: none;
       background: var(--accent);
       color: #000;
-      padding: 0.6rem 1.2rem;
+      padding: 0.6rem 1.4rem;
       border-radius: 6px;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      transition: all 0.3s ease;
+      transition: 0.3s;
     }
     .btn:hover {
-      background: #00bfb2;
+      background: #00bba7;
       transform: scale(1.05);
     }
     footer {
       margin-top: auto;
-      padding: 1.5rem;
+      padding: 1.2rem;
+      text-align: center;
       font-size: 0.9rem;
       opacity: 0.7;
     }
@@ -95,58 +105,77 @@
       header h1 {
         font-size: 1.8rem;
       }
-      .btn {
-        font-size: 0.85rem;
-      }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>🎮 Gaspard's Games & Tools</h1>
-    <p>Quick access to all my interactive creations and utilities!</p>
+    <p>Quick access to all my creations — made with 💡 and curiosity!</p>
   </header>
 
   <main class="container">
+
     <div class="card">
-      <h2>🧩 Caesar Cipher</h2>
-      <p>Encode & Decode Text Instantly</p>
-      <a href="https://gaspard13241-hash.github.io/Home/CaesarCipher" class="btn" target="_blank">Open Tool</a>
+      <div class="icon">🧮</div>
+      <h2>Gas.Py Calculator</h2>
+      <p>Simple, elegant, and precise calculator built for daily use.</p>
+      <a href="https://gaspard13241-hash.github.io/Home/Calculator" target="_blank" class="btn">Open Tool</a>
     </div>
 
     <div class="card">
-      <h2>🪨 Rock · Paper · Scissors</h2>
-      <p>Best of endless — have fun!</p>
-      <a href="https://gaspard13241-hash.github.io/Home/RPS" class="btn" target="_blank">Play Now</a>
+      <div class="icon">❤️</div>
+      <h2>Love Calculator</h2>
+      <p>Discover your love score between two hearts ❤️💞</p>
+      <a href="https://gaspard13241-hash.github.io/Home/LoveCalculator" target="_blank" class="btn">Calculate</a>
     </div>
 
     <div class="card">
-      <h2>🔥 Higher or Lower</h2>
-      <p>Social Showdown — guess your way to a new high score!</p>
-      <a href="https://gaspard13241-hash.github.io/Home/HigherLower" class="btn" target="_blank">Play Game</a>
+      <div class="icon">🧩</div>
+      <h2>Caesar Cipher</h2>
+      <p>Encode & Decode Text Instantly with a shift cipher.</p>
+      <a href="https://gaspard13241-hash.github.io/Home/CaesarCipher" target="_blank" class="btn">Open Tool</a>
     </div>
 
     <div class="card">
-      <h2>🏝️ Treasure Island</h2>
-      <p>A tiny text adventure. Can you find the treasure?</p>
-      <a href="https://gaspard13241-hash.github.io/Home/TreasureIsland" class="btn" target="_blank">Start Adventure</a>
+      <div class="icon">🪨</div>
+      <h2>Rock · Paper · Scissors</h2>
+      <p>Classic game — best of endless rounds. Fun and simple!</p>
+      <a href="https://gaspard13241-hash.github.io/Home/RPS" target="_blank" class="btn">Play Now</a>
     </div>
 
     <div class="card">
-      <h2>💀 Hangman Hyperdrive</h2>
-      <p>A neon-soaked twist on the classic guessing game. Save the stick figure!</p>
-      <a href="https://gaspard13241-hash.github.io/Home/Hangman" class="btn" target="_blank">Play Hangman</a>
+      <div class="icon">🔥</div>
+      <h2>Higher or Lower</h2>
+      <p>Social Showdown — Guess who’s trending higher!</p>
+      <a href="https://gaspard13241-hash.github.io/Home/HigherLower" target="_blank" class="btn">Play Game</a>
     </div>
 
     <div class="card">
-      <h2>🔐 PyPassword Generator</h2>
-      <p>Generate super safe passwords with letters, symbols, and numbers.</p>
-      <a href="https://gaspard13241-hash.github.io/Home/PasswordGenerator" class="btn" target="_blank">Generate</a>
+      <div class="icon">🏝️</div>
+      <h2>Treasure Island</h2>
+      <p>A pixel-inspired text adventure — can you find the treasure?</p>
+      <a href="https://gaspard13241-hash.github.io/Home/TreasureIsland" target="_blank" class="btn">Start Adventure</a>
     </div>
+
+    <div class="card">
+      <div class="icon">💀</div>
+      <h2>Hangman Hyperdrive</h2>
+      <p>A neon-soaked twist on the classic hangman. Save the stick figure!</p>
+      <a href="https://gaspard13241-hash.github.io/Home/Hangman" target="_blank" class="btn">Play Hangman</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🔐</div>
+      <h2>PyPassword Generator</h2>
+      <p>Generate ultra‑secure passwords with letters, symbols, and numbers.</p>
+      <a href="https://gaspard13241-hash.github.io/Home/PasswordGenerator" target="_blank" class="btn">Generate</a>
+    </div>
+
   </main>
 
   <footer>
-    <p>© 2025 Gaspard | Built with 💡 and a lot of curiosity.</p>
+    © 2025 Gaspard | Built with 💡 and a lot of curiosity.
   </footer>
 </body>
 </html>
