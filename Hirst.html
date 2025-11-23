@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Damien Hirst Style Spot Grid</title>
+  <style>
+    body {
+      background-color: rgb(247, 240, 243);
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #2c2f36;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    canvas {
+      border-radius: 10px;
+      background-color: rgb(247, 240, 243);
+      box-shadow: 0 4px 35px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    canvas:hover {
+      transform: scale(1.02);
+      cursor: pointer;
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .label {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-right: 8px;
+    }
+
+    input[type="range"] {
+      width: 200px;
+    }
+
+    #gridValue {
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>🎨 Damien Hirst Style Spot Grid</h1>
+  <div class="controls">
+    <span class="label">Grid Size:</span>
+    <input type="range" id="gridSize" min="5" max="25" value="10">
+    <span id="gridValue">10</span> × <span id="gridValueDup">10</span>
+  </div>
+  <canvas id="artCanvas" width="650" height="650"></canvas>
+
+  <script>
+    const canvas = document.getElementById("artCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const colorList = [
+      [235, 240, 246], [240, 246, 243], [133, 164, 202], [225, 150, 101],
+      [30, 43, 64], [201, 136, 148], [163, 59, 49], [236, 212, 88],
+      [44, 101, 147], [136, 181, 161], [148, 64, 72], [51, 41, 45],
+      [161, 32, 29], [60, 115, 99], [59, 48, 45], [170, 29, 32],
+      [215, 83, 73], [236, 167, 157], [230, 163, 168], [36, 61, 55],
+      [15, 96, 71], [33, 60, 106], [172, 188, 219], [194, 99, 108],
+      [106, 126, 158], [18, 83, 105], [175, 200, 188], [35, 150, 209]
+    ];
+
+    const bgColor = [247, 240, 243];
+    const gridSlider = document.getElementById("gridSize");
+    const gridValue = document.getElementById("gridValue");
+    const gridValueDup = document.getElementById("gridValueDup");
+
+    function randomColor() {
+      const rgb = colorList[Math.floor(Math.random() * colorList.length)];
+      return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function drawHirstGrid(gridSize) {
+      ctx.fillStyle = `rgb(${bgColor.join(",")})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const margin = 60; // space around the grid edges
+      const gridWidth = canvas.width - margin * 2;
+      const spacing = gridWidth / (gridSize - 1);
+      const radius = spacing * 0.35; // ensures no touching
+
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          const x = margin + j * spacing;
+          const y = margin + i * spacing;
+
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = randomColor();
+          ctx.fill();
+        }
+      }
+    }
+
+    function refreshGrid() {
+      const size = parseInt(gridSlider.value);
+      gridValue.textContent = size;
+      gridValueDup.textContent = size;
+      drawHirstGrid(size);
+    }
+
+    // Initial draw
+    refreshGrid();
+
+    // Slider change event
+    gridSlider.addEventListener("input", refreshGrid);
+
+    // Regenerate colors on hover/click
+    canvas.addEventListener("click", refreshGrid);
+  </script>
+</body>
+</html>
