@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Turtle Drawing in HTML</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f7f9fb;
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      height: 100vh;
+    }
+
+    h1 {
+      margin-top: 1rem;
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    canvas {
+      border: 2px solid #333;
+      background: white;
+      touch-action: none;
+    }
+
+    .controls {
+      margin: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 0.5rem;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>HTML Turtle Simulator 🐢</h1>
+  <div class="controls">
+    <label for="colorPicker">Choose Pen Color:</label>
+    <input type="color" id="colorPicker" value="#000000" />
+    <button id="clearBtn">Clear</button>
+  </div>
+
+  <canvas id="turtleCanvas" width="600" height="400"></canvas>
+
+  <footer>© 2025 Gaspard | Built with 💡 and a lot of curiosity.</footer>
+
+  <script>
+    const canvas = document.getElementById("turtleCanvas");
+    const ctx = canvas.getContext("2d");
+    const colorPicker = document.getElementById("colorPicker");
+    const clearBtn = document.getElementById("clearBtn");
+
+    // Starting position and heading (0 = facing east)
+    let x = canvas.width / 2;
+    let y = canvas.height / 2;
+    let angle = 0; // in degrees
+    let color = colorPicker.value;
+
+    function degToRad(deg) {
+      return (deg * Math.PI) / 180;
+    }
+
+    function drawLine(newX, newY) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(newX, newY);
+      ctx.stroke();
+      x = newX;
+      y = newY;
+    }
+
+    function moveForward(dist) {
+      const newX = x + Math.cos(degToRad(angle)) * dist;
+      const newY = y + Math.sin(degToRad(angle)) * dist;
+      drawLine(newX, newY);
+    }
+
+    function moveBackward(dist) {
+      const newX = x - Math.cos(degToRad(angle)) * dist;
+      const newY = y - Math.sin(degToRad(angle)) * dist;
+      drawLine(newX, newY);
+    }
+
+    function turnLeft(deg) {
+      angle -= deg;
+    }
+
+    function turnRight(deg) {
+      angle += deg;
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      x = canvas.width / 2;
+      y = canvas.height / 2;
+      angle = 0;
+    }
+
+    // Event listeners similar to onkey in turtle
+    document.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowUp":
+          moveForward(10);
+          break;
+        case "ArrowDown":
+          moveBackward(10);
+          break;
+        case "ArrowLeft":
+          turnLeft(10);
+          break;
+        case "ArrowRight":
+          turnRight(10);
+          break;
+        case "c":
+        case "C":
+          clearCanvas();
+          break;
+      }
+    });
+
+    // Color change
+    colorPicker.addEventListener("input", (e) => {
+      color = e.target.value;
+    });
+
+    clearBtn.addEventListener("click", clearCanvas);
+  </script>
+</body>
+</html>
