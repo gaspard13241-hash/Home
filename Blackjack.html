@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blackjack Game</title>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #1e2a47;
+      --accent: #00ff88;
+      --text-color: #f7f7f7;
+      --danger: #ff3b3b;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #14213d 0%, #0b0f19 100%);
+      color: var(--text-color);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 2.5em;
+      text-shadow: 0px 0px 10px var(--accent);
+    }
+
+    .game-board {
+      margin: 2rem;
+      background-color: rgba(30, 42, 71, 0.85);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px var(--shadow);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .cards {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      width: 50px;
+      height: 70px;
+      border-radius: 8px;
+      background: white;
+      color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .buttons {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #0b0f19;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+    }
+
+    button:hover {
+      background-color: #00cc6c;
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 15px;
+      text-align: center;
+      background-color: var(--card-bg);
+      width: 100%;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>♠️ Blackjack Game ♣️</h1>
+
+  <div class="game-board" id="game">
+    <p class="status" id="status">Click "Start Game" to begin!</p>
+
+    <h3>Your Cards:</h3>
+    <div class="cards" id="user-cards"></div>
+    <p>Your Score: <span id="user-score">0</span></p>
+
+    <h3>Computer's Cards:</h3>
+    <div class="cards" id="computer-cards"></div>
+    <p>Computer Score: <span id="computer-score">0</span></p>
+
+    <div class="buttons">
+      <button id="start-btn">Start Game</button>
+      <button id="hit-btn" disabled>Hit</button>
+      <button id="stand-btn" disabled>Stand</button>
+    </div>
+  </div>
+
+  <footer>© 2025 Gaspard | Built with 💡 and a lot of curiosity.</footer>
+
+  <script>
+    const userCardsEl = document.getElementById("user-cards");
+    const computerCardsEl = document.getElementById("computer-cards");
+    const statusEl = document.getElementById("status");
+    const userScoreEl = document.getElementById("user-score");
+    const computerScoreEl = document.getElementById("computer-score");
+
+    const startBtn = document.getElementById("start-btn");
+    const hitBtn = document.getElementById("hit-btn");
+    const standBtn = document.getElementById("stand-btn");
+
+    let userCards = [];
+    let computerCards = [];
+    let isGameOver = false;
+
+    function dealCard() {
+      const cards = [11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
+      return cards[Math.floor(Math.random() * cards.length)];
+    }
+
+    function calculateScore(cards) {
+      let sum = cards.reduce((a, b) => a + b, 0);
+      if (sum > 21 && cards.includes(11)) {
+        let index = cards.indexOf(11);
+        cards[index] = 1;
+        sum = cards.reduce((a, b) => a + b, 0);
+      }
+      return sum;
+    }
+
+    function renderCards(el, cards) {
+      el.innerHTML = "";
+      cards.forEach(card => {
+        const div = document.createElement("div");
+        div.classList.add("card");
+        div.textContent = card;
+        el.appendChild(div);
+      });
+    }
+
+    function updateScores() {
+      const userScore = calculateScore(userCards);
+      const computerScore = calculateScore(computerCards);
+      userScoreEl.textContent = userScore;
+      computerScoreEl.textContent = computerScore;
+      return { userScore, computerScore };
+    }
+
+    function startGame() {
+      userCards = [dealCard(), dealCard()];
+      computerCards = [dealCard()];
+      isGameOver = false;
+
+      renderCards(userCardsEl, userCards);
+      renderCards(computerCardsEl, computerCards);
+      updateScores();
+
+      statusEl.textContent = "Your move!";
+      hitBtn.disabled = false;
+      standBtn.disabled = false;
+    }
+
+    function hit() {
+      if (isGameOver) return;
+      userCards.push(dealCard());
+      renderCards(userCardsEl, userCards);
+      const { userScore } = updateScores();
+
+      if (userScore > 21) {
+        statusEl.textContent = "You went over 21! 🙈 You lose.";
+        endGame();
+      }
+    }
+
+    function stand() {
+      hitBtn.disabled = true;
+      standBtn.disabled = true;
+
+      while (calculateScore(computerCards) < 17) {
+        computerCards.push(dealCard());
+      }
+
+      renderCards(computerCardsEl, computerCards);
+
+      const { userScore, computerScore } = updateScores();
+
+      if (computerScore > 21) {
+        statusEl.textContent = "Dealer went over 21! 😎 You win!";
+      } else if (computerScore === userScore) {
+        statusEl.textContent = "It's a draw!";
+      } else if (computerScore > userScore) {
+        statusEl.textContent = "You lose! 😤";
+      } else {
+        statusEl.textContent = "You win! 🎉";
+      }
+
+      endGame();
+    }
+
+    function endGame() {
+      hitBtn.disabled = true;
+      standBtn.disabled = true;
+      startBtn.textContent = "Play Again";
+    }
+
+    startBtn.addEventListener("click", () => {
+      startGame();
+      startBtn.textContent = "Restart";
+    });
+
+    hitBtn.addEventListener("click", hit);
+    standBtn.addEventListener("click", stand);
+  </script>
+</body>
+</html>
