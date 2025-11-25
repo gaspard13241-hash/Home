@@ -1,454 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" >
-<meta name="viewport" content="width=device-width, initial-scale=1.0" >
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Higher or Lower: Social Showdown</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Pirata+One&family=Righteous&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Pirata+One&family=Righteous&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg-primary: #0a0e27;
-    --bg-secondary: #1a1f3a;
-    --bg-card: #242942;
-    --text-primary: #ffffff;
-    --text-secondary: #a8b2d1;
-    --accent-primary: #ff6b6b;
-    --accent-secondary: #4ecdc4;
-    --accent-gold: #ffd93d;
-    --border-color: #3d4466;
-    --shadow-glow: rgba(255, 107, 107, 0.3);
-  }
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #1a1f3a;
+  --bg-card: #242942;
+  --text-primary: #ffffff;
+  --text-secondary: #a8b2d1;
+  --accent-primary: #ff6b6b;
+  --accent-secondary: #4ecdc4;
+  --accent-gold: #ffd93d;
+  --border-color: #3d4466;
+  --shadow-glow: rgba(255, 107, 107, 0.3);
+}
 
-  .light {
-    --bg-primary: #fef6e4;
-    --bg-secondary: #f7e8d0;
-    --bg-card: #ffffff;
-    --text-primary: #2b2d42;
-    --text-secondary: #5a5a72;
-    --accent-primary: #e63946;
-    --accent-secondary: #06a77d;
-    --accent-gold: #f4a261;
-    --border-color: #d4c5b9;
-    --shadow-glow: rgba(230, 57, 70, 0.2);
-  }
+.light {
+  --bg-primary: #fef6e4;
+  --bg-secondary: #f7e8d0;
+  --bg-card: #ffffff;
+  --text-primary: #2b2d42;
+  --text-secondary: #5a5a72;
+  --accent-primary: #e63946;
+  --accent-secondary: #06a77d;
+  --accent-gold: #f4a261;
+  --border-color: #d4c5b9;
+}
 
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+body {
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+  color: var(--text-primary);
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 20px;
+  margin: 0;
+}
 
-  body {
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-    color: var(--text-primary);
-    font-family: system-ui, -apple-system, sans-serif;
-    min-height: 100vh;
-    padding: 20px;
-    position: relative;
-    overflow-x: hidden;
-  }
+.logo h1 {
+  font-family: "Orbitron", sans-serif;
+  font-size: clamp(32px, 8vw, 72px);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+}
+.logo p { font-family: "Righteous", cursive; color: var(--text-secondary); }
 
-  body::before {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, var(--accent-primary) 1px, transparent 1px);
-    background-size: 50px 50px;
-    opacity: 0.03;
-    z-index: 0;
-    animation: gridMove 60s linear infinite;
-  }
+.score-bar {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  align-items: center;
+}
+#timerValue {
+  font-family: "Orbitron", sans-serif;
+  font-size: 28px;
+  color: var(--accent-secondary);
+}
+.timer-warning {
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { color: var(--accent-primary); transform: scale(1); }
+  50% { color: var(--accent-gold); transform: scale(1.25); }
+}
 
-  @keyframes gridMove {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(50px, 50px); }
-  }
+/* buttons */
+button {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  min-width: 140px;
+  margin: 5px;
+}
+button.secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+}
 
-  .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  }
+/* cards and game layout */
+.game-board {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+}
+.vs {
+  font-family: "Bebas Neue", cursive;
+  font-size: 60px;
+  color: var(--accent-gold);
+  text-align: center;
+}
+.card {
+  background: var(--bg-card);
+  padding: 16px;
+  border-radius: 20px;
+  border: 2px solid var(--border-color);
+}
+.card img {
+  width: 100%;
+  border-radius: 12px;
+  height: 240px;
+  object-fit: cover;
+}
+.card-followers.hidden { color: var(--text-secondary); }
+.card.correct { box-shadow: 0 0 20px var(--accent-secondary); }
+.card.incorrect { animation: shake 0.4s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
 
-  .logo {
-    text-align: center;
-    margin-bottom: 40px;
-    animation: fadeInDown 0.8s ease-out;
-  }
-
-  .logo h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(32px, 8vw, 72px);
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    margin-bottom: 10px;
-    text-shadow: 0 0 40px var(--shadow-glow);
-  }
-
-  .logo p {
-    font-family: 'Righteous', cursive;
-    font-size: clamp(14px, 3vw, 20px);
-    color: var(--text-secondary);
-    letter-spacing: 2px;
-  }
-
-  .score-bar {
-    background: var(--bg-card);
-    border: 2px solid var(--border-color);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    animation: fadeIn 0.5s ease-out;
-  }
-
-  .score-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .score-label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-secondary);
-  }
-
-  .score-value {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--accent-primary);
-  }
-
-  .high-score {
-    color: var(--accent-gold);
-  }
-
-  #gameArea {
-    min-height: 400px;
-  }
-
-  .menu {
-    text-align: center;
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  .menu h2 {
-    font-family: 'Righteous', cursive;
-    font-size: clamp(24px, 5vw, 36px);
-    margin-bottom: 30px;
-    color: var(--text-primary);
-  }
-
-  .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 20px;
-  }
-
-  button {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: white;
-    border: none;
-    padding: 16px 32px;
-    font-size: 18px;
-    font-weight: 600;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px var(--shadow-glow);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    min-width: 160px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  button::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-
-  button:hover::before {
-    width: 300px;
-    height: 300px;
-  }
-
-  button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px var(--shadow-glow);
-  }
-
-  button:active {
-    transform: translateY(0);
-  }
-
-  button.secondary {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    border: 2px solid var(--border-color);
-    box-shadow: none;
-  }
-
-  button.secondary:hover {
-    background: var(--bg-secondary);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  }
-
-  .game-board {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 20px;
-    align-items: center;
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  .card {
-    background: var(--bg-card);
-    border: 3px solid var(--border-color);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s ease;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-  }
-
-  .card.revealed {
-    border-color: var(--accent-secondary);
-    box-shadow: 0 8px 32px rgba(78, 205, 196, 0.4);
-  }
-
-  .card.correct {
-    animation: pulseCorrect 0.6s ease-out;
-  }
-
-  .card.incorrect {
-    animation: shakeIncorrect 0.6s ease-out;
-  }
-
-  @keyframes pulseCorrect {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(78, 205, 196, 0.8); }
-  }
-
-  @keyframes shakeIncorrect {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-    20%, 40%, 60%, 80% { transform: translateX(10px); }
-  }
-
-  .card-image {
-    width: 100%;
-    height: 280px;
-    object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 16px;
-  }
-
-  .card-name {
-    font-family: 'Righteous', cursive;
-    font-size: 24px;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-  }
-
-  .card-description {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-    line-height: 1.5;
-  }
-
-  .card-country {
-    font-size: 12px;
-    color: var(--accent-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
-  }
-
-  .card-followers {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--accent-primary);
-    margin-top: 16px;
-  }
-
-  .card-followers.hidden {
-    color: var(--text-secondary);
-    font-size: 24px;
-  }
-
-  .vs {
-    font-family: 'Bebas Neue', cursive;
-    font-size: 64px;
-    color: var(--accent-gold);
-    text-shadow: 0 0 20px var(--shadow-glow);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.8; }
-  }
-
-  .choice-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-  }
-
-  .choice-buttons button {
-    flex: 1;
-    min-width: 0;
-    padding: 16px 12px;
-    font-size: 16px;
-  }
-
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease-out;
-  }
-
-  .modal-content {
-    background: var(--bg-card);
-    border: 3px solid var(--accent-primary);
-    border-radius: 24px;
-    padding: 40px;
-    max-width: 500px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 16px 64px rgba(0,0,0,0.5);
-    animation: scaleIn 0.3s ease-out;
-  }
-
-  @keyframes scaleIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  .modal-content h2 {
-    font-family: 'Righteous', cursive;
-    font-size: 36px;
-    margin-bottom: 16px;
-    color: var(--accent-primary);
-  }
-
-  .modal-content p {
-    font-size: 18px;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  .modal-content .final-score {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 48px;
-    font-weight: 700;
-    color: var(--accent-gold);
-    margin: 20px 0;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (max-width: 768px) {
-    .game-board {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .vs {
-      font-size: 48px;
-      transform: rotate(90deg);
-      margin: 20px 0;
-    }
-
-    .card-image {
-      height: 200px;
-    }
-
-    .score-bar {
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    button {
-      min-width: 140px;
-      padding: 14px 24px;
-      font-size: 16px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .modal-content {
-      padding: 24px;
-    }
-
-    .modal-content h2 {
-      font-size: 28px;
-    }
-
-    .modal-content .final-score {
-      font-size: 36px;
-    }
-  }
+/* modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-content {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  border: 3px solid var(--accent-primary);
+}
+.final-score {
+  font-family: "Orbitron", sans-serif;
+  font-size: 48px;
+  color: var(--accent-gold);
+}
 </style>
 </head>
 <body>
@@ -460,87 +161,75 @@
   </div>
 
   <div id="scoreBar" style="display:none;" class="score-bar">
-    <div class="score-item">
-      <span class="score-label">Current Streak</span>
-      <span class="score-value" id="scoreValue">0</span>
-    </div>
-    <div class="score-item">
-      <span class="score-label">High Score</span>
-      <span class="score-value high-score" id="highScoreValue">0</span>
-    </div>
-    <div class="score-item">
-      <button class="secondary" onclick="game.quit()">Exit Game</button>
-    </div>
+    <div class="score-item"><span>⏱ Time:</span> <span id="timerValue">--</span></div>
+    <div class="score-item"><span>Current:</span> <span id="scoreValue">0</span></div>
+    <div class="score-item"><span>High:</span> <span id="highScoreValue">0</span></div>
+    <div class="score-item"><button class="secondary" onclick="game.quit()">Exit</button></div>
   </div>
 
   <div id="gameArea"></div>
 </div>
 
 <script>
-// Detect dark mode preference
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.documentElement.classList.remove('light');
-} else {
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
   document.documentElement.classList.add('light');
 }
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-  if (event.matches) {
-    document.documentElement.classList.remove('light');
-  } else {
-    document.documentElement.classList.add('light');
-  }
-});
 
 const game = {
+  timeLimit: 60,
+  timeRemaining: 60,
+  timer: null,
+  timerEnabled: false, // ✅ mode toggle
+
   sport_data: [
-    { name: "Kylian Mbappé", followers: 127500000, description: "French professional footballer for La Liga club Real Madrid and captains the France national team.", country: "France", image: "https://upload.wikimedia.org/wikipedia/commons/8/83/Kylian_Mbappe_%28cropped%29.jpg" },
-    { name: "Cristiano Ronaldo", followers: 500000000, description: "Professional footballer, widely regarded as one of the greatest players of all time.", country: "Portugal", image: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Cristiano_Ronaldo_2018.jpg" },
-    { name: "Lionel Messi", followers: 500000000, description: "Professional footballer, considered one of the best players in history.", country: "Argentina", image: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Lionel_Messi_20180626.jpg" },
-    { name: "Virat Kohli", followers: 200000000, description: "Indian cricketer and former captain of the Indian national team.", country: "India", image: "https://upload.wikimedia.org/wikipedia/commons/3/32/Virat_Kohli_%28cropped%29.jpg" },
-    { name: "Neymar Jr.", followers: 200000000, description: "Professional footballer known for his skill and flair.", country: "Brazil", image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Neymar_Jr_2018.jpg" },
-    { name: "LeBron James", followers: 100000000, description: "Professional basketball player, often considered one of the greatest in NBA history.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/LeBron_James_2019.jpg" },
-    { name: "Serena Williams", followers: 100000000, description: "Professional tennis player, regarded as one of the greatest female athletes of all time.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Serena_Williams_at_2013_US_Open.jpg" },
-    { name: "Tiger Woods", followers: 30000000, description: "Professional golfer, one of the most successful golfers in history.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Tiger_Woods_2018.jpg" },
-    { name: "Usain Bolt", followers: 10000000, description: "Jamaican sprinter, considered the fastest person ever.", country: "Jamaica", image: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Usain_Bolt_Rio_100m_final_2016.jpg" },
-    { name: "Rafael Nadal", followers: 20000000, description: "Professional tennis player known for his record in Grand Slam titles.", country: "Spain", image: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Rafael_Nadal_2018.jpg" }
+    { name: "Kylian Mbappé", followers: 127500000, description: "French footballer for Real Madrid.", country: "France", image: "https://upload.wikimedia.org/wikipedia/commons/8/83/Kylian_Mbappe_%28cropped%29.jpg" },
+    { name: "Cristiano Ronaldo", followers: 500000000, description: "Portuguese football legend.", country: "Portugal", image: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Cristiano_Ronaldo_2018.jpg" },
+    { name: "Lionel Messi", followers: 500000000, description: "Argentinian icon.", country: "Argentina", image: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Lionel_Messi_20180626.jpg" },
+    { name: "Virat Kohli", followers: 200000000, description: "Indian cricket superstar.", country: "India", image: "https://upload.wikimedia.org/wikipedia/commons/3/32/Virat_Kohli_%28cropped%29.jpg" },
+    { name: "LeBron James", followers: 100000000, description: "Basketball legend.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/LeBron_James_2019.jpg" }
   ],
 
   celebrities_data: [
-    { name: "Selena Gomez", followers: 400000000, description: "Singer and actress known for her role in 'Wizards of Waverly Place'.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Selena_Gomez_2019_by_Glenn_Francis.jpg" },
-    { name: "Dwayne Johnson", followers: 300000000, description: "Actor and former professional wrestler, also known as 'The Rock'.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Dwayne_Johnson_2%2C_2018.jpg" },
-    { name: "Kim Kardashian", followers: 350000000, description: "Media personality and businesswoman, known for her reality TV show.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Kim_Kardashian_2019.jpg" },
-    { name: "Ariana Grande", followers: 350000000, description: "Singer and actress known for her powerful vocals.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/6/69/Ariana_Grande_2019_by_Glenn_Francis.jpg" },
-    { name: "Taylor Swift", followers: 250000000, description: "Singer-songwriter known for her narrative songwriting.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Taylor_Swift_June_2019.jpg" },
-    { name: "Justin Bieber", followers: 300000000, description: "Pop singer and songwriter, known for hits like 'Love Yourself'.", country: "Canada", image: "https://upload.wikimedia.org/wikipedia/commons/2/22/Justin_Bieber_2021.jpg" },
-    { name: "Kylie Jenner", followers: 300000000, description: "Media personality and businesswoman, known for her cosmetics line.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/f/f4/Kylie_Jenner_Vogue_2019.png" },
-    { name: "Emma Watson", followers: 60000000, description: "Actress and activist known for her role as Hermione Granger.", country: "UK", image: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Emma_Watson_2019.jpg" },
-    { name: "Billie Eilish", followers: 100000000, description: "Singer-songwriter known for her distinctive style and sound.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/2/29/Billie_Eilish_2019.jpg" },
-    { name: "Leonardo DiCaprio", followers: 50000000, description: "Oscar-winning actor known for films like 'Titanic' and 'Inception'.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Leonardo_DiCaprio_2016.jpg" }
+    { name: "Selena Gomez", followers: 400000000, description: "Singer and actress.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Selena_Gomez_2019_by_Glenn_Francis.jpg" },
+    { name: "Dwayne Johnson", followers: 300000000, description: "Actor and wrestler.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Dwayne_Johnson_2%2C_2018.jpg" },
+    { name: "Kim Kardashian", followers: 350000000, description: "Media personality.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Kim_Kardashian_2019.jpg" },
+    { name: "Ariana Grande", followers: 350000000, description: "Pop singer.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/6/69/Ariana_Grande_2019_by_Glenn_Francis.jpg" },
+    { name: "Taylor Swift", followers: 250000000, description: "Singer-songwriter.", country: "USA", image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Taylor_Swift_June_2019.jpg" }
   ],
 
-  currentData: [],
   score: 0,
   highScore: 0,
+  currentData: [],
   cardA: null,
   cardB: null,
   usedCards: [],
 
   init() {
-    this.loadHighScore();
     this.showMenu();
   },
 
   showMenu() {
-    const area = document.getElementById('gameArea');
-    document.getElementById('scoreBar').style.display = 'none';
-    area.innerHTML = `
-      <div class="menu">
-        <h2>Choose Your Game Mode</h2>
-        <div class="button-group">
-          <button onclick="game.startGame('sports')">🏆 Sports Stars</button>
-          <button onclick="game.startGame('celebs')">🎬 Celebrities</button>
-          <button onclick="game.startGame('mixed')">🌍 Mixed Mode</button>
+    document.getElementById("gameArea").innerHTML = `
+      <div class="menu" style="text-align:center">
+        <h2>Would you like to play with a timer?</h2>
+        <div>
+          <button onclick="game.chooseMode(true)">⏱ With Timer</button>
+          <button onclick="game.chooseMode(false)">🚫 Without Timer</button>
         </div>
+      </div>
+    `;
+    document.getElementById("scoreBar").style.display = "none";
+    this.stopTimer();
+  },
+
+  chooseMode(useTimer) {
+    this.timerEnabled = useTimer;
+    document.getElementById("gameArea").innerHTML = `
+      <div class="menu" style="text-align:center">
+        <h2>Choose Game Mode</h2>
+        <button onclick="game.startGame('sports')">🏆 Sports Stars</button>
+        <button onclick="game.startGame('celebs')">🎬 Celebrities</button>
+        <button onclick="game.startGame('mixed')">🌍 Mixed Mode</button>
       </div>
     `;
   },
@@ -548,70 +237,75 @@ const game = {
   startGame(mode) {
     this.score = 0;
     this.usedCards = [];
+    this.cardA = null;
+    this.cardB = null;
 
-    if (mode === 'sports') {
-      this.currentData = [...this.sport_data];
-    } else if (mode === 'celebs') {
-      this.currentData = [...this.celebrities_data];
-    } else {
-      this.currentData = [...this.sport_data, ...this.celebrities_data];
-    }
+    if (mode === "sports") this.currentData = [...this.sport_data];
+    else if (mode === "celebs") this.currentData = [...this.celebrities_data];
+    else this.currentData = [...this.sport_data, ...this.celebrities_data];
 
-    if (this.currentData.length < 2) {
-      this.showCustomAlert('Not enough data to play! Please add more entries.');
-      return;
-    }
-
-    document.getElementById('scoreBar').style.display = 'flex';
+    document.getElementById("scoreBar").style.display = "flex";
     this.updateScore();
+
+    // Timer mode only
+    if (this.timerEnabled) {
+      this.startTimer();
+    } else {
+      document.getElementById("timerValue").textContent = "∞";
+    }
+
     this.nextRound();
   },
 
+  startTimer() {
+    this.stopTimer();
+    this.timeRemaining = this.timeLimit;
+    const timerEl = document.getElementById("timerValue");
+    timerEl.textContent = this.timeRemaining;
+    timerEl.classList.remove("timer-warning");
+    this.timer = setInterval(() => {
+      this.timeRemaining--;
+      timerEl.textContent = this.timeRemaining;
+      if (this.timeRemaining <= 10) timerEl.classList.add("timer-warning");
+      if (this.timeRemaining <= 0) {
+        this.stopTimer();
+        this.gameOver("⏰ Time’s up!");
+      }
+    }, 1000);
+  },
+
+  stopTimer() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+  },
+
   nextRound() {
-    const available = this.currentData.filter(card => !this.usedCards.includes(card));
-
-    if (available.length < 2) {
-      this.usedCards = [];
-      available.push(...this.currentData);
-    }
-
-    if (this.cardB) {
-      this.cardA = this.cardB;
-      this.usedCards.push(this.cardA);
-    } else {
-      const randomIndex = Math.floor(Math.random() * available.length);
-      this.cardA = available[randomIndex];
-      this.usedCards.push(this.cardA);
-    }
-
-    const availableForB = available.filter(card => card !== this.cardA);
-    const randomIndex = Math.floor(Math.random() * availableForB.length);
-    this.cardB = availableForB[randomIndex];
-
+    const available = this.currentData.filter(c => !this.usedCards.includes(c));
+    if (available.length < 2) this.usedCards = [];
+    if (this.cardB) this.cardA = this.cardB;
+    else this.cardA = available[Math.floor(Math.random() * available.length)];
+    this.usedCards.push(this.cardA);
+    this.cardB = available.filter(c => c !== this.cardA)[Math.floor(Math.random() * (available.length - 1))];
     this.renderGame();
   },
 
   renderGame() {
-    const area = document.getElementById('gameArea');
-    area.innerHTML = `
+    const a = this.cardA, b = this.cardB;
+    document.getElementById("gameArea").innerHTML = `
       <div class="game-board">
         <div class="card revealed">
-          <img src="${this.cardA.image}" alt="${this.cardA.name}" class="card-image" onerror="this.src='https://via.placeholder.com/400x280?text=Image+Not+Available'">
-          <div class="card-country">${this.cardA.country}</div>
-          <div class="card-name">${this.cardA.name}</div>
-          <div class="card-description">${this.cardA.description}</div>
-          <div class="card-followers">${this.formatNumber(this.cardA.followers)} followers</div>
+          <img src="${a.image}" alt="${a.name}" />
+          <h3>${a.name}</h3>
+          <p>${a.country}</p>
+          <div class="card-followers">${this.format(a.followers)} followers</div>
         </div>
-
         <div class="vs">VS</div>
-
         <div class="card" id="cardB">
-          <img src="${this.cardB.image}" alt="${this.cardB.name}" class="card-image" onerror="this.src='https://via.placeholder.com/400x280?text=Image+Not+Available'">
-          <div class="card-country">${this.cardB.country}</div>
-          <div class="card-name">${this.cardB.name}</div>
-          <div class="card-description">${this.cardB.description}</div>
+          <img src="${b.image}" alt="${b.name}" />
+          <h3>${b.name}</h3>
+          <p>${b.country}</p>
           <div class="card-followers hidden">??? followers</div>
-          <div class="choice-buttons">
+          <div style="display:flex;gap:10px;margin-top:10px;">
             <button onclick="game.makeGuess('higher')">📈 Higher</button>
             <button onclick="game.makeGuess('lower')">📉 Lower</button>
           </div>
@@ -620,126 +314,78 @@ const game = {
     `;
   },
 
-  makeGuess(guess) {
+  makeGuess(choice) {
     const isHigher = this.cardB.followers > this.cardA.followers;
-    const isCorrect = (guess === 'higher' && isHigher) || (guess === 'lower' && !isHigher);
+    const correct = (choice === 'higher' && isHigher) || (choice === 'lower' && !isHigher);
+    const cardB = document.getElementById("cardB");
+    const foll = cardB.querySelector(".card-followers");
+    foll.textContent = `${this.format(this.cardB.followers)} followers`;
+    foll.classList.remove("hidden");
 
-    const cardBElement = document.getElementById('cardB');
-    const followersElement = cardBElement.querySelector('.card-followers');
-    followersElement.textContent = this.formatNumber(this.cardB.followers) + ' followers';
-    followersElement.classList.remove('hidden');
-
-    cardBElement.classList.add('revealed');
-
-    const buttons = cardBElement.querySelectorAll('button');
-    buttons.forEach(btn => btn.disabled = true);
-
-    if (isCorrect) {
-      cardBElement.classList.add('correct');
+    if (correct) {
       this.score++;
       this.updateScore();
+      cardB.classList.add("correct");
 
-      setTimeout(() => {
-        this.nextRound();
-      }, 1500);
+      // ✅ +5 seconds reward if timer mode active
+      if (this.timerEnabled && this.timer) {
+        this.timeRemaining = Math.min(this.timeRemaining + 5, this.timeLimit + 20);
+        document.getElementById("timerValue").textContent = this.timeRemaining;
+      }
+
+      setTimeout(()=>this.nextRound(), 1000);
     } else {
-      cardBElement.classList.add('incorrect');
-
-      setTimeout(() => {
-        this.gameOver();
-      }, 1500);
+      cardB.classList.add("incorrect");
+      if (this.timerEnabled) this.stopTimer();
+      setTimeout(()=>this.gameOver("❌ Wrong Guess!"), 1000);
     }
+  },
+
+  gameOver(reason="Game Over!") {
+    if (this.score > this.highScore) this.highScore = this.score;
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2>${reason}</h2>
+        <p>Your final score:</p>
+        <div class="final-score">${this.score}</div>
+        <p>High score: ${this.highScore}</p>
+        <div style="margin-top:20px;">
+          <button onclick="modal.remove(); game.startGame('${this.getMode()}')">Play Again</button>
+          <button class="secondary" onclick="modal.remove(); game.showMenu()">Main Menu</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  },
+
+  getMode() {
+    if (this.currentData.length === this.sport_data.length) return "sports";
+    if (this.currentData.length === this.celebrities_data.length) return "celebs";
+    return "mixed";
   },
 
   updateScore() {
-    document.getElementById('scoreValue').textContent = this.score;
-    document.getElementById('highScoreValue').textContent = this.highScore;
-  },
-
-  gameOver() {
-    if (this.score > this.highScore) {
-      this.highScore = this.score;
-      this.saveHighScore();
-      this.updateScore();
-    }
-
-    this.showGameOverModal();
-  },
-
-  showGameOverModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h2>${this.score > this.highScore / 2 ? 'Great Job!' : 'Game Over!'}</h2>
-        <p>Your final score:</p>
-        <div class="final-score">${this.score}</div>
-        <p>${this.score === this.highScore ? '🎉 New High Score! 🎉' : 'High Score: ' + this.highScore}</p>
-        <div class="button-group">
-          <button onclick="game.closeModal(); game.startGame('${this.getModeFromData()}')">Play Again</button>
-          <button class="secondary" onclick="game.closeModal(); game.showMenu()">Main Menu</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  },
-
-  showCustomAlert(message) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h2>Notice</h2>
-        <p>${message}</p>
-        <div class="button-group">
-          <button onclick="game.closeModal()">OK</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  },
-
-  closeModal() {
-    const modal = document.querySelector('.modal');
-    if (modal) {
-      modal.remove();
-    }
-  },
-
-  getModeFromData() {
-    if (this.currentData.length === this.sport_data.length) return 'sports';
-    if (this.currentData.length === this.celebrities_data.length) return 'celebs';
-    return 'mixed';
+    document.getElementById("scoreValue").textContent = this.score;
+    document.getElementById("highScoreValue").textContent = this.highScore;
   },
 
   quit() {
-    this.cardB = null;
+    this.stopTimer();
     this.showMenu();
   },
 
-  formatNumber(num) {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    }
-    return num.toLocaleString();
-  },
-
-  saveHighScore() {
-    // High score is tracked in-session only (localStorage not available in iframe)
-    console.log('High score:', this.highScore);
-  },
-
-  loadHighScore() {
-    // High score starts at 0 each session (localStorage not available in iframe)
-    this.highScore = 0;
+  format(num) {
+    if (num >= 1e6) return (num/1e6).toFixed(1)+"M";
+    if (num >= 1e3) return (num/1e3).toFixed(1)+"K";
+    return num;
   }
 };
-
 game.init();
 </script>
-    <footer>
-        © 2025 Gaspard | Built with 💡 and a lot of curiosity.
-    </footer>
 
+<footer style="text-align:center;margin-top:40px;">
+  © 2025 Gaspard | Built with 💡 curiosity.
+</footer>
 </body>
 </html>
