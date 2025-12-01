@@ -3,178 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Incognito Access Portal</title>
+  <title>🕶️ Incognito Explorer</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: "Segoe UI", Roboto, Ubuntu, sans-serif;
-      background: radial-gradient(circle at top, #1e1e1e, #0d0d0d);
+      background: #0d0d0d;
       color: #f0f0f0;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      align-items: center;
+      height: 100vh;
+      overflow: hidden;
     }
 
     header {
-      text-align: center;
-      padding: 1.5rem;
-    }
-
-    header h1 {
-      font-size: 2rem;
-      margin-bottom: 0.3rem;
-    }
-
-    header p {
-      color: #ccc;
-    }
-
-    .browser {
-      width: 95%;
-      max-width: 1000px;
-      background: #141414;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-
-    .toolbar {
-      background: #2b2b2b;
-      padding: 0.5rem;
+      background: #1a1a1a;
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      gap: 0.5rem;
+      border-bottom: 2px solid #2b2b2b;
     }
 
-    .toolbar button {
-      background: #3d3d3d;
+    header button {
+      background: #2a2a2a;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       color: #fff;
-      padding: 0.4rem 0.7rem;
+      padding: 0.4rem 0.6rem;
       cursor: pointer;
+      font-size: 1rem;
       transition: background 0.3s;
     }
 
-    .toolbar button:hover {
-      background: #555;
+    header button:hover {
+      background: #444;
     }
 
-    .toolbar input {
+    header input {
       flex: 1;
-      padding: 0.5rem 0.7rem;
+      padding: 0.6rem 0.8rem;
       border: none;
       border-radius: 5px;
-      background: #222;
+      background: #202020;
       color: #fff;
+      font-size: 1rem;
     }
 
-    .links {
+    nav {
+      background: #141414;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 0.8rem;
-      padding: 1rem;
+      padding: 0.6rem;
+      border-bottom: 1px solid #2b2b2b;
     }
 
-    .link-card {
+    nav .link {
       background: #1b1b1b;
       padding: 0.6rem 1rem;
       border-radius: 10px;
       text-align: center;
       transition: transform 0.2s ease, background 0.3s ease;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
       cursor: pointer;
+      font-weight: 600;
+      color: #fff;
+      text-decoration: none;
     }
 
-    .link-card:hover {
+    nav .link:hover {
       transform: translateY(-4px);
       background: #222;
     }
 
     iframe {
-      border: none;
       flex-grow: 1;
       width: 100%;
-      height: 70vh;
+      height: 100%;
+      border: none;
       background: #000;
     }
 
     footer {
+      background: #111;
       text-align: center;
       color: #888;
-      padding: 1rem;
+      padding: 0.6rem;
       font-size: 0.9rem;
+      border-top: 1px solid #2b2b2b;
     }
 
-    @media (max-width: 480px) {
-      header h1 {
-        font-size: 1.5rem;
+    /* Fullscreen hide UI elements */
+    .fullscreen header,
+    .fullscreen nav,
+    .fullscreen footer {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        flex-wrap: wrap;
+      }
+      header input {
+        order: 3;
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>🕶️ Incognito Access Portal</h1>
-    <p>Explore the web privately — in a contained frame.</p>
+    <button onclick="goBack()">⬅️</button>
+    <button onclick="goForward()">➡️</button>
+    <input type="text" id="address" placeholder="Enter a URL or search term..." onkeydown="if(event.key==='Enter') loadAddress()">
+    <button onclick="loadAddress()">Go</button>
+    <button onclick="toggleFullscreen()">🖥️ Fullscreen</button>
   </header>
 
-  <div class="browser">
-    <div class="toolbar">
-      <button onclick="goBack()">⬅️</button>
-      <button onclick="goForward()">➡️</button>
-      <input type="text" id="address" placeholder="Enter URL or search term..." onkeydown="if(event.key==='Enter') loadAddress()">
-      <button onclick="loadAddress()">Go</button>
-    </div>
+  <nav>
+    <div class="link" onclick="openSite('https://www.google.com')">Google</div>
+    <div class="link" onclick="openSite('https://www.youtube.com')">YouTube</div>
+    <div class="link" onclick="openSite('https://www.wikipedia.org')">Wikipedia</div>
+    <div class="link" onclick="openSite('https://hole-io.com/')">Hole.io</div>
+    <div class="link" onclick="openSite('https://paper-io.com/')">Paper.io</div>
+    <div class="link" onclick="openSite('https://warbrokers.io/')">Warfront</div>
+    <div class="link" onclick="openSite('https://www.reddit.com')">Reddit</div>
+    <div class="link" onclick="openSite('https://twitter.com')">Twitter (X)</div>
+  </nav>
 
-    <div class="links">
-      <div class="link-card" onclick="openSite('https://www.google.com')">Google</div>
-      <div class="link-card" onclick="openSite('https://www.youtube.com')">YouTube</div>
-      <div class="link-card" onclick="openSite('https://www.wikipedia.org')">Wikipedia</div>
-      <div class="link-card" onclick="openSite('https://www.reddit.com')">Reddit</div>
-      <div class="link-card" onclick="openSite('https://www.twitter.com')">Twitter (X)</div>
-      <div class="link-card" onclick="openSite('https://www.gmail.com')">Gmail</div>
-    </div>
+  <iframe id="browserFrame" src="https://www.google.com"></iframe>
 
-    <iframe id="browserFrame" src="about:blank"></iframe>
-  </div>
-
-  <footer>
-    © 2025 Gaspard | Built with 💡 and a lot of curiosity.
-  </footer>
+  <footer>© 2025 Gaspard | Built with 💡 and a lot of curiosity.</footer>
 
   <script>
     const frame = document.getElementById('browserFrame');
-    const addressInput = document.getElementById('address');
+    const addr = document.getElementById('address');
     const historyStack = [];
     let currentIndex = -1;
 
     function openSite(url) {
       frame.src = url;
-      addressInput.value = url;
-      historyStack.push(url);
-      currentIndex = historyStack.length - 1;
+      addr.value = url;
+      addToHistory(url);
     }
 
     function loadAddress() {
-      let input = addressInput.value.trim();
+      let input = addr.value.trim();
       if (!input) return;
-      if (!input.startsWith('http')) {
+      if (!input.startsWith("http")) {
         input = `https://www.google.com/search?q=${encodeURIComponent(input)}`;
       }
       openSite(input);
+    }
+
+    function addToHistory(url) {
+      historyStack.push(url);
+      currentIndex = historyStack.length - 1;
     }
 
     function goBack() {
       if (currentIndex > 0) {
         currentIndex--;
         frame.src = historyStack[currentIndex];
-        addressInput.value = historyStack[currentIndex];
+        addr.value = historyStack[currentIndex];
       }
     }
 
@@ -182,9 +178,32 @@
       if (currentIndex < historyStack.length - 1) {
         currentIndex++;
         frame.src = historyStack[currentIndex];
-        addressInput.value = historyStack[currentIndex];
+        addr.value = historyStack[currentIndex];
       }
     }
+
+    // Fullscreen toggle — hides header, nav, and footer
+    function toggleFullscreen() {
+      document.body.classList.toggle('fullscreen');
+      const element = document.documentElement;
+
+      if (!document.fullscreenElement) {
+        if (element.requestFullscreen) element.requestFullscreen();
+        else if (element.webkitRequestFullscreen) element.webkitRequestFullscreen();
+        else if (element.msRequestFullscreen) element.msRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+      }
+    }
+
+    // Exit fullscreen resets UI
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        document.body.classList.remove('fullscreen');
+      }
+    });
   </script>
 </body>
 </html>
