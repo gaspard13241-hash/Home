@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smartphone et obsolescence programmée — Présentation 5 min</title>
+  <style>
+    :root{
+      --bg:#0f172a;          /* ardoise foncée */
+      --card:#111827;        /* fond cartes */
+      --text:#e5e7eb;        /* texte principal */
+      --muted:#9ca3af;       /* texte secondaire */
+      --accent:#22d3ee;      /* cyan */
+      --accent-2:#a78bfa;    /* violet */
+      --ok:#10b981;          /* vert */
+      --warn:#f59e0b;        /* jaune */
+      --bad:#ef4444;         /* rouge */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+      background:radial-gradient(1200px 800px at 20% 0%, #1f2937 0%, var(--bg) 60%);
+      color:var(--text);
+      overflow:hidden;
+    }
+    .deck{
+      position:relative;
+      height:100vh;
+      width:100vw;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px;
+    }
+    .slide{
+      position:absolute;
+      inset:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.35);
+      padding:18px clamp(14px,3vw,36px);
+      display:none;
+    }
+    .slide.active{display:block; animation:fade 220ms ease-out}
+    @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)}}
+
+    header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:8px;
+      flex-wrap:wrap;
+    }
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent);
+      font-weight:700;
+    }
+    h1,h2{
+      margin:0;
+      line-height:1.15;
+      font-weight:800;
+      letter-spacing:-0.02em;
+      text-wrap:balance;
+    }
+    h1{font-size:clamp(24px,5.8vw,44px)}
+    h2{font-size:clamp(20px,5vw,34px)}
+    .subtitle{
+      color:var(--muted);
+      font-size:clamp(14px,2.6vw,18px);
+      margin-top:6px;
+    }
+    ul,ol{
+      margin:14px 0 0 1.1em;
+      padding:0;
+      font-size:clamp(14px,2.9vw,20px);
+      line-height:1.35;
+    }
+    li{margin:6px 0}
+    .row{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+      margin-top:10px;
+    }
+    @media(min-width:720px){
+      .row.two{grid-template-columns:1fr 1fr}
+      .row.three{grid-template-columns:1fr 1fr 1fr}
+    }
+    .card{
+      background:rgba(17,24,39,0.6);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:12px;
+      padding:12px;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(34,211,238,0.12);
+      color:var(--accent);
+      font-size:12px;
+      font-weight:700;
+    }
+    .kpi{
+      display:flex; align-items:baseline; gap:8px; margin-top:4px;
+    }
+    .kpi b{font-size:clamp(18px,4.6vw,30px)}
+    .muted{color:var(--muted)}
+    .good{color:var(--ok)}
+    .warn{color:var(--warn)}
+    .bad{color:var(--bad)}
+    .footer{
+      position:absolute; left:16px; right:16px; bottom:10px;
+      display:flex; align-items:center; justify-content:space-between;
+      color:var(--muted); font-size:12px;
+    }
+    .controls{
+      position:fixed; right:10px; bottom:10px; z-index:10;
+      display:flex; gap:8px;
+    }
+    .btn{
+      background:rgba(255,255,255,0.08);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.12);
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:700;
+      font-size:14px;
+      cursor:pointer;
+      backdrop-filter: blur(6px);
+    }
+    .btn:disabled{opacity:.45; cursor:not-allowed}
+    .progress{
+      position:fixed; left:0; right:0; bottom:0; height:4px;
+      background:rgba(255,255,255,0.08);
+    }
+    .bar{
+      height:100%; width:0%;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      transition:width 200ms ease;
+    }
+    .time{
+      position:fixed; left:10px; top:10px;
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:10px; padding:6px 10px; font-size:12px; color:var(--muted);
+      backdrop-filter: blur(6px);
+    }
+    .note{
+      margin-top:8px; font-size:clamp(12px,2.5vw,16px); color:var(--muted);
+    }
+    /* Make lists readable on phones */
+    @media (max-width:420px){
+      ul,ol{margin-left:.9em}
+      .footer{font-size:11px}
+    }
+  </style>
+</head>
+<body>
+  <div class="time" id="timer">00:00 / 05:00</div>
+  <div class="deck" id="deck" aria-live="polite">
+
+    <!-- 1. Titre -->
+    <section class="slide active" data-title="Titre">
+      <header>
+        <span class="eyebrow">Technologie & Environnement</span>
+        <h1>Smartphone et obsolescence programmée</h1>
+      </header>
+      <p class="subtitle">Objectif: comprendre l’impact environnemental et les formes d’obsolescence liées aux smartphones.</p>
+      <div class="row two">
+        <div class="card">
+          <div class="tag">Plan</div>
+          <ul>
+            <li>Fonctionnement et cycle de vie</li>
+            <li>Types d’obsolescence</li>
+            <li>Conséquences</li>
+            <li>Évolutions positives et solutions</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="tag">Contexte</div>
+          <ul>
+            <li>Durée d’usage moyenne: 2–4 ans</li>
+            <li>Impact majeur: fabrication</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">
+        <span>4e — Présentation 5 minutes</span>
+        <span>Diapo 1/14</span>
+      </div>
+    </section>
+
+    <!-- 2. Objet étudié -->
+    <section class="slide" data-title="Objet">
+      <header><h2>Objet étudié: le smartphone</h2></header>
+      <ul>
+        <li>Téléphone + ordinateur de poche: appels, Internet, apps, photos</li>
+        <li>Acteurs clés: fabricants (Apple, Samsung…), OS (iOS, Android)</li>
+        <li>Usage quotidien: communication, travail scolaire, loisirs</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 2/14</span></div>
+    </section>
+
+    <!-- 3. Comment ça fonctionne -->
+    <section class="slide" data-title="Fonctionnement">
+      <header><h2>Comment ça fonctionne ?</h2></header>
+      <div class="row two">
+        <div class="card">
+          <div class="tag">Matériel</div>
+          <ul>
+            <li>Processeur, mémoire, batterie Li‑ion</li>
+            <li>Écran, caméras, capteurs (GPS, accéléromètre)</li>
+            <li>Antennes: 4G/5G, Wi‑Fi, Bluetooth</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="tag">Logiciel</div>
+          <ul>
+            <li>Système d’exploitation (iOS/Android)</li>
+            <li>Mises à jour et sécurité</li>
+            <li>Applications et stockage</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span></span><span>Diapo 3/14</span></div>
+    </section>
+
+    <!-- 4. Cycle de vie & impacts -->
+    <section class="slide" data-title="Cycle de vie">
+      <header><h2>Où sont les impacts environnementaux ?</h2></header>
+      <div class="row two">
+        <div class="card">
+          <div class="tag">Cycle de vie</div>
+          <ol>
+            <li>Extraction des matériaux (lithium, cobalt, terres rares)</li>
+            <li>Fabrication (énergie, eau, chimie)</li>
+            <li>Transport et distribution</li>
+            <li>Usage (recharge)</li>
+            <li>Fin de vie (réparation, revente, recyclage)</li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="tag">Impacts clés</div>
+          <ul>
+            <li class="warn">Fabrication = plus grande part du CO₂</li>
+            <li>Transport: émissions supplémentaires</li>
+            <li>Usage: faible vs fabrication</li>
+            <li class="bad">Déchets électroniques si non collectés</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span></span><span>Diapo 4/14</span></div>
+    </section>
+
+    <!-- 5. Rappel obsolescence -->
+    <section class="slide" data-title="Définition">
+      <header><h2>Obsolescence programmée: définition</h2></header>
+      <ul>
+        <li>Stratégie qui réduit la durée d’usage effective d’un produit</li>
+        <li>But: pousser au remplacement plus rapide</li>
+      </ul>
+      <div class="row two">
+        <div class="card">
+          <div class="tag">Formes</div>
+          <ul>
+            <li>Matérielle (pièces fragiles)</li>
+            <li>Logicielle (incompatibilités/MAJ)</li>
+            <li>Non‑réparabilité (collé/soudé)</li>
+            <li>Marketing/esthétique</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="tag">Exemple historique</div>
+          <p class="muted">Cartel Phoebus (années 1920): durée des ampoules limitée à 1 000 h → plus de ventes, plus de déchets.</p>
+        </div>
+      </div>
+      <div class="footer"><span></span><span>Diapo 5/14</span></div>
+    </section>
+
+    <!-- 6. Obsolescence matérielle -->
+    <section class="slide" data-title="Matérielle">
+      <header><h2>Sur le smartphone: obsolescence matérielle</h2></header>
+      <ul>
+        <li class="bad">Batteries collées/soudées → difficile à remplacer</li>
+        <li>Écrans fragiles, pièces propriétaires</li>
+        <li>Disponibilité limitée des pièces</li>
+      </ul>
+      <div class="note">Conséquence: réparation coûteuse → achat d’un nouveau téléphone.</div>
+      <div class="footer"><span></span><span>Diapo 6/14</span></div>
+    </section>
+
+    <!-- 7. Obsolescence logicielle -->
+    <section class="slide" data-title="Logicielle">
+      <header><h2>Obsolescence logicielle</h2></header>
+      <ul>
+        <li class="warn">Fin des mises à jour → failles de sécurité</li>
+        <li>Applications non compatibles avec les anciens OS</li>
+        <li>MAJ lourdes pouvant ralentir d’anciens modèles</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 7/14</span></div>
+    </section>
+
+    <!-- 8. Non-réparabilité -->
+    <section class="slide" data-title="Non réparabilité">
+      <header><h2>Obsolescence par non‑réparabilité</h2></header>
+      <ul>
+        <li>Vis propriétaires, colle → démontage difficile</li>
+        <li>Modules non remplaçables (batterie, stockage)</li>
+        <li>Coût réparation > valeur du téléphone</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 8/14</span></div>
+    </section>
+
+    <!-- 9. Marketing/esthétique -->
+    <section class="slide" data-title="Marketing">
+      <header><h2>Obsolescence marketing / esthétique</h2></header>
+      <ul>
+        <li>Renouvellement annuel des modèles</li>
+        <li>Pression sociale et nouveautés “incrémentales”</li>
+        <li>Design perçu comme “dépassé”</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 9/14</span></div>
+    </section>
+
+    <!-- 10. Conséquences -->
+    <section class="slide" data-title="Conséquences">
+      <header><h2>Conséquences environnementales et sociales</h2></header>
+      <ul>
+        <li class="bad">Augmentation des déchets électroniques (e‑waste)</li>
+        <li>Extraction minière: impacts sur écosystèmes et populations</li>
+        <li>Empreinte carbone surtout à la fabrication</li>
+        <li>Perte de métaux critiques (recyclage incomplet)</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 10/14</span></div>
+    </section>
+
+    <!-- 11. Évolutions positives -->
+    <section class="slide" data-title="Évolutions positives">
+      <header><h2>Évolutions positives récentes</h2></header>
+      <div class="row two">
+        <div class="card">
+          <ul>
+            <li class="good">Indice de réparabilité (France)</li>
+            <li class="good">Droit à la réparation en progression</li>
+            <li>Support logiciel allongé chez certains fabricants</li>
+          </ul>
+        </div>
+        <div class="card">
+          <ul>
+            <li>Programmes de reprise / reconditionné</li>
+            <li>Modèles plus réparables (ex: Fairphone)</li>
+            <li>Matériaux recyclés dans certains châssis</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span></span><span>Diapo 11/14</span></div>
+    </section>
+
+    <!-- 12. Solutions fabricants -->
+    <section class="slide" data-title="Solutions fabricants">
+      <header><h2>Solutions — côté fabricants</h2></header>
+      <ul>
+        <li class="good">Concevoir démontable: batteries remplaçables, vis standard</li>
+        <li>Garantir pièces et MAJ pendant 5–7 ans minimum</li>
+        <li>Éco‑conception: matériaux recyclés, réparations abordables</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 12/14</span></div>
+    </section>
+
+    <!-- 13. Solutions utilisateurs & politiques -->
+    <section class="slide" data-title="Solutions utilisateurs">
+      <header><h2>Solutions — utilisateurs et politiques</h2></header>
+      <ul>
+        <li>Garder plus longtemps: coque, film, entretien batterie</li>
+        <li>Réparer/faire changer la batterie plutôt que racheter</li>
+        <li>Acheter reconditionné; rapporter en fin de vie</li>
+        <li>Politiques publiques: garantie allongée, disponibilité des pièces</li>
+      </ul>
+      <div class="footer"><span></span><span>Diapo 13/14</span></div>
+    </section>
+
+    <!-- 14. Conclusion -->
+    <section class="slide" data-title="Conclusion">
+      <header><h2>Conclusion</h2></header>
+      <ul>
+        <li>Le smartphone améliore la vie mais pèse surtout à la fabrication</li>
+        <li>Plusieurs formes d’obsolescence: matérielle, logicielle, non‑réparable, marketing</li>
+        <li class="good">Agir: prolonger l’usage, réparer, exiger support long et vraie réparabilité</li>
+      </ul>
+      <p class="note">Question pour la classe: quelle action simple peux‑tu faire cette semaine pour prolonger la vie d’un appareil ?</p>
+      <div class="footer"><span>Merci !</span><span>Diapo 14/14</span></div>
+    </section>
+
+  </div>
+
+  <!-- Controls -->
+  <div class="controls" aria-label="Contrôles de navigation">
+    <button class="btn" id="prev" title="Diapo précédente">◀</button>
+    <button class="btn" id="next" title="Diapo suivante">▶</button>
+  </div>
+  <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+
+  <script>
+    (function(){
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const prev = document.getElementById('prev');
+      const next = document.getElementById('next');
+      const bar = document.getElementById('bar');
+      const timer = document.getElementById('timer');
+      let idx = 0;
+
+      function show(i){
+        slides[idx].classList.remove('active');
+        idx = Math.max(0, Math.min(i, slides.length-1));
+        slides[idx].classList.add('active');
+        bar.style.width = ((idx+1)/slides.length*100) + '%';
+        document.title = slides[idx].dataset.title + ' — Présentation';
+        updateButtons();
+      }
+
+      function updateButtons(){
+        prev.disabled = idx === 0;
+        next.disabled = idx === slides.length - 1;
+      }
+
+      prev.addEventListener('click', ()=>show(idx-1));
+      next.addEventListener('click', ()=>show(idx+1));
+      window.addEventListener('keydown', (e)=>{
+        if (['ArrowRight','PageDown',' '].includes(e.key)) { e.preventDefault(); show(idx+1); }
+        if (['ArrowLeft','PageUp','Backspace'].includes(e.key)) { e.preventDefault(); show(idx-1); }
+        if (e.key === 'Home') show(0);
+        if (e.key === 'End') show(slides.length-1);
+      });
+
+      // Simple 5-minute timer
+      const totalSec = 5*60;
+      const start = Date.now();
+      function tick(){
+        const elapsed = Math.floor((Date.now()-start)/1000);
+        const clamped = Math.min(elapsed, totalSec);
+        timer.textContent = fmt(clamped) + ' / ' + fmt(totalSec);
+        if (elapsed <= totalSec) requestAnimationFrame(tick);
+        else timer.style.color = '#f87171';
+      }
+      function fmt(s){
+        const m = Math.floor(s/60), sec = s%60;
+        return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+      }
+      tick();
+
+      // Start state
+      show(0);
+    })();
+  </script>
+</body>
+</html>
