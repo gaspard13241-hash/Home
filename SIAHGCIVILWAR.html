@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Civil War Lessons Interactive Quiz (Units 2.1 & 2.2)</title>
+  <style>
+    :root{
+      --bg:#0e1117;
+      --card:#161b22;
+      --ink:#e6edf3;
+      --muted:#9aa4b2;
+      --accent:#3b82f6;
+      --accent-2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --border:#263041;
+      --chip:#1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif}
+    a{color:var(--accent)}
+    .app{
+      max-width:980px;margin:0 auto;padding:16px 14px 80px;
+    }
+    header{
+      display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+      margin:8px 0 16px;
+    }
+    .title{
+      display:flex;flex-direction:column;gap:6px;min-width:260px;
+    }
+    h1{font-size:1.35rem;margin:0;line-height:1.2}
+    .subtitle{color:var(--muted);font-size:.95rem}
+    .controls{
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap
+    }
+    .select, button{
+      background:var(--card);color:var(--ink);border:1px solid var(--border);border-radius:10px;
+      padding:10px 12px;font-size:.95rem;
+    }
+    button{cursor:pointer}
+    button.primary{background:var(--accent);border-color:transparent;color:#fff}
+    button.ghost{background:transparent;border-color:var(--border)}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .chipbar{
+      display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0;
+    }
+    .chip{
+      background:var(--chip);color:var(--ink);border:1px solid var(--border);
+      padding:6px 10px;border-radius:999px;font-size:.85rem;display:inline-flex;gap:6px;align-items:center
+    }
+    .grid{
+      display:grid;gap:14px;margin-top:10px;
+      grid-template-columns:1fr;
+    }
+    @media (min-width:720px){
+      .grid{grid-template-columns:1fr 1fr}
+    }
+    .card{
+      background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;
+    }
+    .qhead{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+    }
+    .qnum{
+      font-weight:600;font-size:.95rem;
+    }
+    .qtag{
+      font-size:.75rem;color:var(--muted);background:#121620;border:1px solid var(--border);padding:4px 8px;border-radius:999px
+    }
+    .qtext{line-height:1.35}
+    .answers{display:flex;flex-direction:column;gap:8px}
+    .opt{
+      border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;gap:10px;align-items:flex-start;background:#0f1420;
+      cursor:pointer;transition:border-color .15s, background .15s;
+    }
+    .opt:hover{border-color:#3a465b}
+    .opt input{margin-top:3px}
+    .opt.correct{border-color:var(--accent-2);background:#0d1a12}
+    .opt.incorrect{border-color:var(--danger);background:#1a0f12}
+    .explain{
+      color:var(--muted);font-size:.9rem;border-left:3px solid #2a3344;padding-left:10px;margin-top:4px
+    }
+    .actions{
+      display:flex;gap:8px;flex-wrap:wrap;margin-top:8px
+    }
+    .score{
+      margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px
+    }
+    .score h2{margin:0 0 8px 0;font-size:1.05rem}
+    .progress{
+      height:10px;background:#0d1320;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px
+    }
+    .bar{
+      height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#7c3aed);transition:width .4s ease
+    }
+    .pill{
+      display:inline-flex;gap:8px;align-items:center;background:#0f1420;border:1px solid var(--border);border-radius:999px;padding:8px 10px
+    }
+    .kbd{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      background:#0d1320;border:1px solid var(--border);padding:1px 6px;border-radius:6px;font-size:.85rem;color:#d6deeb
+    }
+    footer{
+      margin-top:28px;color:var(--muted);font-size:.85rem;display:flex;flex-direction:column;gap:8px
+    }
+    .hidden{display:none}
+    .badge{
+      font-size:.75rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101522;color:var(--ink)
+    }
+    .inline-list{display:inline-flex;gap:8px;flex-wrap:wrap}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    .legend span{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
+    .box{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--border)}
+    .box.correct{background:#0d1a12;border-color:var(--accent-2)}
+    .box.incorrect{background:#1a0f12;border-color:var(--danger)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>Interactive Quiz: Prelude to the Civil War + The Civil War</h1>
+        <div class="subtitle">
+          Covers Unit 2 - Lesson 1 (Election of 1860, Secession, Fort Sumter, Bull Run) and Lesson 2 (Antietam, Emancipation, USCT, Gettysburg, Vicksburg, Sherman, Appomattox).
+        </div>
+        <div class="chipbar">
+          <span class="chip">Questions: <strong id="qCount">—</strong></span>
+          <span class="chip">Mode: <strong id="modeLabel">Study</strong></span>
+          <span class="chip">Source: <strong>Unit 2 Lessons 1–2</strong></span>
+        </div>
+      </div>
+      <div class="controls">
+        <select id="lessonFilter" class="select" aria-label="Filter by lesson">
+          <option value="all">All Lessons</option>
+          <option value="l1">Lesson 1 only</option>
+          <option value="l2">Lesson 2 only</option>
+        </select>
+        <select id="typeFilter" class="select" aria-label="Filter by question type">
+          <option value="all">All Types</option>
+          <option value="mc">Multiple Choice</option>
+          <option value="tf">True/False</option>
+          <option value="sa">Short Answer</option>
+          <option value="match">Matching</option>
+        </select>
+        <button id="shuffleBtn" class="ghost" title="Shuffle questions">Shuffle</button>
+        <button id="resetBtn" class="ghost" title="Reset answers">Reset</button>
+        <button id="toggleMode" class="primary" title="Switch between Study and Test modes">Switch to Test</button>
+      </div>
+    </header>
+
+    <div class="legend">
+      <span><span class="box correct"></span> Correct</span>
+      <span><span class="box incorrect"></span> Incorrect</span>
+      <span class="badge">Hint: Tap an option to check in Study mode; in Test mode submit to grade.</span>
+    </div>
+
+    <section id="quiz" class="grid" aria-live="polite"></section>
+
+    <section id="scorePanel" class="score hidden" aria-live="polite">
+      <h2>Score</h2>
+      <div class="inline-list">
+        <div class="pill">Correct: <strong id="correctCount">0</strong></div>
+        <div class="pill">Incorrect: <strong id="incorrectCount">0</strong></div>
+        <div class="pill">Unanswered: <strong id="unansweredCount">0</strong></div>
+      </div>
+      <div class="progress" aria-label="Score progress">
+        <div id="scoreBar" class="bar"></div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button id="reviewBtn" class="ghost">Review Answers</button>
+        <button id="retryBtn" class="primary">Retry Missed</button>
+      </div>
+    </section>
+
+    <div class="actions" style="position:sticky;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(14,17,23,.9) 30%, rgba(14,17,23,1) 50%);padding:12px 0;margin-top:12px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="submitBtn" class="primary">Submit (Test mode)</button>
+        <button id="showAllExp" class="ghost">Toggle Explanations</button>
+        <button id="downloadBtn" class="ghost">Download Results</button>
+      </div>
+    </div>
+
+    <footer>
+      <div>Keyboard: <span class="kbd">1</span>/<span class="kbd">2</span>/<span class="kbd">3</span>/<span class="kbd">4</span> to pick options in focused question, <span class="kbd">N</span> next card, <span class="kbd">R</span> reset.</div>
+      <div>Built from provided lesson content. No external assets required.</div>
+    </footer>
+  </div>
+
+  <script>
+    // Quiz data from Unit 2 - Lesson 1 and Lesson 2
+    const QUESTIONS = [
+      // Lesson 1 — Election, Secession, Fort Sumter, Bull Run, Strategies
+      {
+        id:"l1_mc_1", lesson:"l1", type:"mc",
+        q:"Why did many white Southerners view Lincoln’s 1860 victory as an existential threat?",
+        choices:[
+          "He promised to abolish slavery immediately nationwide.",
+          "He won without Southern electoral votes and opposed the expansion of slavery, threatening their long-term political power.",
+          "He campaigned to dissolve the Supreme Court.",
+          "He pledged to invade Mexico and end cotton exports."
+        ],
+        answer:1,
+        explain:"Lincoln’s platform opposed the expansion of slavery into new territories. Winning without any Southern electoral votes signaled declining Southern influence, putting their slave-based political power on a path to 'ultimate extinction.'"
+      },
+      {
+        id:"l1_tf_1", lesson:"l1", type:"tf",
+        q:"True or False: The primary reason cited by South Carolina for secession was federal tariffs.",
+        answer:true, // We'll invert in grading by interpreting correct boolean
+        explain:"False. South Carolina’s Declaration of Causes centered on the defense of slavery, objecting to Northern states’ stance against the institution."
+      },
+      {
+        id:"l1_mc_2", lesson:"l1", type:"mc",
+        q:"Which timeline is correct regarding early secession?",
+        choices:[
+          "South Carolina secedes (Dec 20, 1860), then several Deep South states, forming the Confederacy in Feb 1861.",
+          "Virginia secedes first in 1859, followed by the Border States.",
+          "All Confederate states secede after Fort Sumter.",
+          "Secession begins after Bull Run."
+        ],
+        answer:0,
+        explain:"South Carolina led on Dec 20, 1860. By February 1861, Mississippi, Florida, Alabama, Georgia, Louisiana, and Texas followed; the Confederacy formed Feb 4, 1861."
+      },
+      {
+        id:"l1_mc_3", lesson:"l1", type:"mc",
+        q:"What dilemma did Lincoln face at Fort Sumter?",
+        choices:[
+          "Whether to free enslaved people in border states.",
+          "Whether to reinforce the fort and risk war, or abandon it and legitimize the Confederacy.",
+          "Whether to attack Richmond or Atlanta first.",
+          "Whether to accept British mediation."
+        ],
+        answer:1,
+        explain:"Sending troops risked war; abandoning the fort signaled weakness. He opted to send only food and supplies."
+      },
+      {
+        id:"l1_mc_4", lesson:"l1", type:"mc",
+        q:"Immediate consequence of the bombardment of Fort Sumter:",
+        choices:[
+          "Lincoln resigned.",
+          "Britain recognized the Confederacy.",
+          "Lincoln called for 75,000 volunteers, prompting VA, AR, TN, and NC to secede.",
+          "Congress abolished slavery."
+        ],
+        answer:2,
+        explain:"Lincoln’s call mobilized the Upper South to join the Confederacy, finalizing the split."
+      },
+      {
+        id:"l1_mc_5", lesson:"l1", type:"mc",
+        q:"Union 'Anaconda Plan' included all EXCEPT:",
+        choices:[
+          "A naval blockade of the South.",
+          "Control of the Mississippi River.",
+          "A rapid invasion of Canada.",
+          "Capturing Richmond."
+        ],
+        answer:2,
+        explain:"The plan aimed to squeeze the South economically and strategically; Canada was irrelevant."
+      },
+      {
+        id:"l1_mc_6", lesson:"l1", type:"mc",
+        q:"Confederate strategy relied on:",
+        choices:[
+          "Immediate total war against civilians.",
+          "A defensive war of attrition and 'King Cotton' diplomacy.",
+          "Blockading Northern ports.",
+          "Seizing California gold fields."
+        ],
+        answer:1,
+        explain:"They sought to wear down Northern will and gain British/French recognition via cotton."
+      },
+      {
+        id:"l1_mc_7", lesson:"l1", type:"mc",
+        q:"Significance of First Bull Run (First Manassas):",
+        choices:[
+          "Proved the war would be long and bloody; shattered illusions of a quick victory.",
+          "Ended the war with a Union victory.",
+          "Led to immediate emancipation.",
+          "Convinced Britain to join the war."
+        ],
+        answer:0,
+        explain:"A Confederate victory and Union rout revealed the conflict’s scale and duration."
+      },
+      // Lesson 2 — Antietam, Emancipation, USCT, Gettysburg, Vicksburg, Sherman, Grant, Appomattox
+      {
+        id:"l2_mc_1", lesson:"l2", type:"mc",
+        q:"Why were Civil War casualties so high?",
+        choices:[
+          "Outdated weapons and modern tactics reduced lethality.",
+          "Rifle-muskets with long-range accuracy combined with Napoleonic massed charges; disease and poor medicine killed many.",
+          "Both sides avoided battle and relied only on sieges.",
+          "The war lasted only a few months so casualties concentrated."
+        ],
+        answer:1,
+        explain:"Technology outpaced tactics. Disease (dysentery, typhoid) and infections after amputations were deadly."
+      },
+      {
+        id:"l2_mc_2", lesson:"l2", type:"mc",
+        q:"Antietam’s outcome enabled which policy shift?",
+        choices:[
+          "The immediate surrender of the Confederacy.",
+          "Lincoln issuing the Emancipation Proclamation.",
+          "Union annexation of Canada.",
+          "British recognition of the Confederacy."
+        ],
+        answer:1,
+        explain:"A strategic Union check of Lee at Antietam gave Lincoln the opportunity to announce emancipation."
+      },
+      {
+        id:"l2_tf_1", lesson:"l2", type:"tf",
+        q:"True or False: The Emancipation Proclamation freed enslaved people everywhere in the United States.",
+        answer:true,
+        explain:"False. It applied to areas in rebellion, not to loyal border states; it also authorized Black enlistment."
+      },
+      {
+        id:"l2_mc_3", lesson:"l2", type:"mc",
+        q:"What did the Emancipation Proclamation change about the Union war aim?",
+        choices:[
+          "No change; it remained only about restoring the Union.",
+          "It added a moral objective: ending slavery, alongside preserving the Union.",
+          "It shifted to conquering Mexico.",
+          "It prioritized seizing Western territories over the East."
+        ],
+        answer:1,
+        explain:"It reframed the conflict as a fight for freedom, strengthening the Union’s cause."
+      },
+      {
+        id:"l2_mc_4", lesson:"l2", type:"mc",
+        q:"United States Colored Troops (USCT) facts include all EXCEPT:",
+        choices:[
+          "~180,000 served in the Union Army; ~19,000 in the Navy.",
+          "They received equal pay and faced no special risks.",
+          "They faced discrimination and risked re-enslavement or execution if captured.",
+          "Their service helped secure Union victory and demonstrated commitment to freedom."
+        ],
+        answer:1,
+        explain:"USCT often received less pay early on, were relegated to labor duties, and faced unique dangers."
+      },
+      {
+        id:"l2_mc_5", lesson:"l2", type:"mc",
+        q:"Gettysburg (July 1–3, 1863) resulted in:",
+        choices:[
+          "A decisive Confederate victory enabling a Northern invasion.",
+          "A crushing Union victory; Lee’s army crippled and never invades the North again.",
+          "Stalemate with minimal casualties.",
+          "Immediate Confederate surrender."
+        ],
+        answer:1,
+        explain:"Union General Meade repelled Lee; casualties exceeded 50,000."
+      },
+      {
+        id:"l2_sa_1", lesson:"l2", type:"sa",
+        q:"In one sentence, explain the significance of the Gettysburg Address.",
+        placeholder:"Type your answer...",
+        rubric:"Should note dedication to equality and national purpose, honoring the dead, calling for a 'new birth of freedom,' and preserving government 'of, by, for the people.'"
+      },
+      {
+        id:"l2_mc_6", lesson:"l2", type:"mc",
+        q:"Vicksburg’s fall (July 4, 1863) mattered because:",
+        choices:[
+          "It ended all fighting east of the Mississippi.",
+          "It split the Confederacy and gave the Union control of the Mississippi.",
+          "It forced Britain into the war.",
+          "It led to Lincoln’s resignation."
+        ],
+        answer:1,
+        explain:"Grant’s siege cut the Confederacy in two and secured the Mississippi River for the Union."
+      },
+      {
+        id:"l2_mc_7", lesson:"l2", type:"mc",
+        q:"Sherman’s March to the Sea exemplified which strategy?",
+        choices:[
+          "Limited war focused only on armies.",
+          "Total war targeting economic and psychological resources.",
+          "Naval-only blockade warfare.",
+          "Guerrilla warfare in Appalachia."
+        ],
+        answer:1,
+        explain:"Sherman destroyed railroads, supplies, and infrastructure to break Southern morale."
+      },
+      {
+        id:"l2_mc_8", lesson:"l2", type:"mc",
+        q:"By 1864, Grant’s overall approach leveraged which Northern strengths?",
+        choices:[
+          "Southern rail dominance and European allies.",
+          "Industrial capacity and manpower, sustaining pressure across multiple fronts.",
+          "Mountain warfare advantages.",
+          "Naval inferiority and cavalry raids only."
+        ],
+        answer:1,
+        explain:"The North’s industry supplied arms and ammo; manpower enabled massed operations that wore down Confederate forces."
+      },
+      {
+        id:"l2_tf_2", lesson:"l2", type:"tf",
+        q:"True or False: Lee surrendered to Grant at Appomattox on April 9, 1865, under harsh terms including imprisonment for Confederate soldiers.",
+        answer:true,
+        explain:"False. Grant’s terms were generous—soldiers kept sidearms and horses and were not prosecuted."
+      },
+      // Matching (mixed lessons)
+      {
+        id:"mix_match_1", lesson:"l2", type:"match",
+        q:"Match each event to its description.",
+        pairs:{
+          left:["Antietam","Emancipation Proclamation","Gettysburg","Vicksburg","Sherman’s March","Appomattox"],
+          right:[
+            "Union siege splits Confederacy; Mississippi River under Union control.",
+            "Strategic check enables policy to redefine war aims and allow Black enlistment.",
+            "Total war devastates infrastructure and morale from Atlanta to Savannah.",
+            "Three-day battle cripples Lee; no further Northern invasions.",
+            "Formal surrender of Lee to Grant; generous terms.",
+            "Proclamation frees enslaved people in rebelling areas; reframes war."
+          ]
+        },
+        answer:[1,5,3,0,2,4],
+        explain:"Each left item maps to its historical effect as taught in the lessons."
+      },
+      // Short answer (Lesson 1)
+      {
+        id:"l1_sa_1", lesson:"l1", type:"sa",
+        q:"Briefly explain why Bull Run shattered the illusion of a short war.",
+        placeholder:"Type your answer...",
+        rubric:"Should reference unexpected Confederate victory, high casualties, Union rout, and realization the war would be long and bloody."
+      }
+    ];
+
+    // Utility: clone deep simple
+    const deepClone = obj => JSON.parse(JSON.stringify(obj));
+
+    // State
+    let mode = "study"; // "study" or "test"
+    let filtered = deepClone(QUESTIONS);
+    let responses = {}; // id -> {type, value, correct, graded}
+    let showAllExplanations = false;
+
+    const els = {
+      quiz: document.getElementById("quiz"),
+      submitBtn: document.getElementById("submitBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      shuffleBtn: document.getElementById("shuffleBtn"),
+      toggleMode: document.getElementById("toggleMode"),
+      modeLabel: document.getElementById("modeLabel"),
+      lessonFilter: document.getElementById("lessonFilter"),
+      typeFilter: document.getElementById("typeFilter"),
+      qCount: document.getElementById("qCount"),
+      scorePanel: document.getElementById("scorePanel"),
+      correctCount: document.getElementById("correctCount"),
+      incorrectCount: document.getElementById("incorrectCount"),
+      unansweredCount: document.getElementById("unansweredCount"),
+      scoreBar: document.getElementById("scoreBar"),
+      reviewBtn: document.getElementById("reviewBtn"),
+      retryBtn: document.getElementById("retryBtn"),
+      showAllExp: document.getElementById("showAllExp"),
+      downloadBtn: document.getElementById("downloadBtn"),
+    };
+
+    function applyFilters(){
+      const lf = els.lessonFilter.value;
+      const tf = els.typeFilter.value;
+      filtered = QUESTIONS.filter(q=>{
+        const lessonOk = lf==="all" || q.lesson===lf;
+        const typeOk = tf==="all" || q.type===tf;
+        return lessonOk && typeOk;
+      });
+      els.qCount.textContent = filtered.length;
+      render();
+    }
+
+    function shuffle(array){
+      for(let i=array.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+      }
+      return array;
+    }
+
+    function resetAnswers(keepFilter=true){
+      responses = {};
+      document.querySelectorAll('input').forEach(i=>{ if(i.type==="radio"||i.type==="checkbox") i.checked=false; else i.value=""; });
+      els.scorePanel.classList.add("hidden");
+      showAllExplanations = false;
+      if(keepFilter) applyFilters(); else render();
+    }
+
+    function setMode(next){
+      mode = next;
+      els.modeLabel.textContent = mode==="study" ? "Study" : "Test";
+      els.toggleMode.textContent = mode==="study" ? "Switch to Test" : "Switch to Study";
+      els.submitBtn.disabled = mode==="study";
+      // Clear grading styles
+      resetAnswers();
+    }
+
+    function render(){
+      els.quiz.innerHTML = "";
+      filtered.forEach((q, idx)=>{
+        const card = document.createElement("article");
+        card.className = "card";
+        card.tabIndex = 0;
+
+        const head = document.createElement("div");
+        head.className = "qhead";
+        head.innerHTML = `<div class="qnum">Q${idx+1}</div><div class="qtag">${q.lesson.toUpperCase()} • ${q.type.toUpperCase()}</div>`;
+        card.appendChild(head);
+
+        const qtext = document.createElement("div");
+        qtext.className = "qtext";
+        qtext.textContent = q.q;
+        card.appendChild(qtext);
+
+        const answers = document.createElement("div");
+        answers.className = "answers";
+
+        if(q.type==="mc"){
+          q.choices.forEach((c, i)=>{
+            const id = `${q.id}_${i}`;
+            const label = document.createElement("label");
+            label.className = "opt";
+            label.innerHTML = `<input type="radio" name="${q.id}" id="${id}" value="${i}" /> <div>${c}</div>`;
+            label.addEventListener("click",(e)=>{
+              if(!(e.target instanceof HTMLInputElement)) {
+                label.querySelector("input").checked = true;
+              }
+              selectMC(q, i, label);
+            });
+            answers.appendChild(label);
+          });
+        } else if(q.type==="tf"){
+          const opts = ["True","False"];
+          opts.forEach((c, i)=>{
+            const label = document.createElement("label");
+            label.className = "opt";
+            label.innerHTML = `<input type="radio" name="${q.id}" value="${i===0}" /> <div>${c}</div>`;
+            label.addEventListener("click",()=>{
+              selectTF(q, i===0, label);
+            });
+            answers.appendChild(label);
+          });
+        } else if(q.type==="sa"){
+          const ta = document.createElement("textarea");
+          ta.placeholder = q.placeholder || "Type your answer...";
+          ta.style.minHeight = "80px";
+          ta.style.resize = "vertical";
+          ta.style.background = "#0f1420";
+          ta.style.color = "var(--ink)";
+          ta.style.border = "1px solid var(--border)";
+          ta.style.borderRadius = "10px";
+          ta.style.padding = "10px";
+          ta.addEventListener("input",()=>{
+            responses[q.id] = {type:"sa", value: ta.value, graded:false};
+          });
+          answers.appendChild(ta);
+        } else if(q.type==="match"){
+          // Build matching UI: left list and right select for each
+          const container = document.createElement("div");
+          container.style.display = "grid";
+          container.style.gridTemplateColumns = "1fr";
+          container.style.gap = "8px";
+          const {left, right} = q.pairs;
+          // Create a shuffled right list for choices
+          const order = right.map((_,i)=>i);
+          shuffle(order);
+          left.forEach((lText, li)=>{
+            const row = document.createElement("div");
+            row.style.display = "grid";
+            row.style.gridTemplateColumns = "1fr minmax(160px, 1fr)";
+            row.style.gap = "8px";
+            row.innerHTML = `<div style="padding:8px;border:1px solid var(--border);border-radius:10px;background:#0f1420">${lText}</div>`;
+            const select = document.createElement("select");
+            select.className = "select";
+            const emptyOpt = document.createElement("option");
+            emptyOpt.value = "";
+            emptyOpt.textContent = "Choose match…";
+            select.appendChild(emptyOpt);
+            order.forEach(ri=>{
+              const opt = document.createElement("option");
+              opt.value = ri;
+              opt.textContent = right[ri];
+              select.appendChild(opt);
+            });
+            select.addEventListener("change",()=>{
+              // Store as mapping of left index -> chosen right index
+              const prev = responses[q.id]?.value || {};
+              prev[li] = select.value==="" ? null : Number(select.value);
+              responses[q.id] = {type:"match", value: prev, graded:false};
+              if(mode==="study"){
+                // Instant feedback for this row
+                const correctIndex = q.answer[li];
+                const selected = select.value==="" ? null : Number(select.value);
+                select.style.borderColor = (selected===null) ? "var(--border)" : (selected===correctIndex ? "var(--accent-2)" : "var(--danger)");
+              }
+            });
+            row.appendChild(select);
+            container.appendChild(row);
+          });
+          answers.appendChild(container);
+        }
+
+        card.appendChild(answers);
+
+        // Explanation/rubric
+        const exp = document.createElement("div");
+        exp.className = "explain";
+        exp.dataset.qid = q.id;
+        exp.style.display = showAllExplanations ? "block" : "none";
+        if(q.type==="sa"){
+          exp.innerHTML = `<strong>Rubric:</strong> ${q.rubric}`;
+        } else if(q.type==="match"){
+          exp.textContent = q.explain;
+        } else {
+          exp.textContent = q.explain;
+        }
+        card.appendChild(exp);
+
+        els.quiz.appendChild(card);
+      });
+    }
+
+    function markOptions(qId, correctIndex, chosenIndex){
+      const opts = [...document.querySelectorAll(`label.opt input[name="${qId}"]`)].map(i=>i.closest("label"));
+      opts.forEach((label, i)=>{
+        label.classList.remove("correct","incorrect");
+        if(i===chosenIndex){
+          label.classList.add(i===correctIndex ? "correct" : "incorrect");
+        }
+        if(i===correctIndex && mode==="test"){
+          // In test mode after submit, highlight the correct one if missed
+          label.classList.add("correct");
+        }
+      });
+    }
+
+    function selectMC(q, idx, labelEl){
+      responses[q.id] = {type:"mc", value: idx, graded: mode==="study"};
+      if(mode==="study"){
+        const isCorrect = idx===q.answer;
+        markOptions(q.id, q.answer, idx);
+        toggleExplain(q.id, true);
+      }
+    }
+
+    function selectTF(q, val, labelEl){
+      // For TF we stored correct boolean in 'answer' but set to true meaning "the statement as written is False"
+      // Our QUESTIONS use answer:true meaning the correct evaluation is False (so user should pick False).
+      // To avoid confusion, store the correct boolean as what the user should select: false if statement is false.
+      // In our dataset, answer:true signifies 'False' is correct. We'll compute expected = !q.answer
+      const expected = !q.answer;
+      responses[q.id] = {type:"tf", value: val, graded: mode==="study"};
+      if(mode==="study"){
+        const chosenIndex = val ? 0 : 1;
+        const correctIndex = expected ? 0 : 1;
+        markOptions(q.id, correctIndex, chosenIndex);
+        toggleExplain(q.id, true);
+      }
+    }
+
+    function toggleExplain(qid, show){
+      const el = document.querySelector(`.explain[data-qid="${qid}"]`);
+      if(el){ el.style.display = show ? "block" : (showAllExplanations ? "block" : "none"); }
+    }
+
+    function grade(){
+      let correct=0, incorrect=0, unanswered=0;
+      filtered.forEach(q=>{
+        const r = responses[q.id];
+        let ok = false;
+        if(q.type==="mc"){
+          if(r && typeof r.value==="number"){
+            ok = r.value===q.answer;
+            r.graded = true; r.correct = ok;
+            const chosenIndex = r.value;
+            markOptions(q.id, q.answer, chosenIndex);
+            toggleExplain(q.id, true);
+          } else {
+            unanswered++;
+          }
+        } else if(q.type==="tf"){
+          const expected = !q.answer; // see note in selectTF
+          if(r && typeof r.value==="boolean"){
+            ok = r.value===expected;
+            r.graded = true; r.correct = ok;
+            const chosenIndex = r.value ? 0 : 1;
+            const correctIndex = expected ? 0 : 1;
+            markOptions(q.id, correctIndex, chosenIndex);
+            toggleExplain(q.id, true);
+          } else {
+            unanswered++;
+          }
+        } else if(q.type==="sa"){
+          if(r && r.value && r.value.trim().length>0){
+            // SA not auto-graded; count as unanswered for score, but include in export
+            unanswered++;
+            toggleExplain(q.id, true);
+          } else {
+            unanswered++;
+          }
+        } else if(q.type==="match"){
+          const val = r?.value || {};
+          let allChosen = true;
+          let allCorrect = true;
+          q.answer.forEach((correctIndex, li)=>{
+            const chosen = val[li];
+            if(chosen===undefined || chosen===null){ allChosen=false; }
+            if(chosen!==correctIndex){ allCorrect=false; }
+            // color each select
+            const selects = els.quiz.querySelectorAll(".card .answers select.select");
+          });
+          // Update select borders
+          // Re-query specific card
+          const card = [...els.quiz.children].find(node=>{
+            return node.querySelector(`.qtext`)?.textContent === q.q;
+          });
+          if(card){
+            const selectEls = card.querySelectorAll("select.select");
+            selectEls.forEach((sel, li)=>{
+              const chosen = (r?.value||{})[li];
+              const correctIndex = q.answer[li];
+              if(chosen===undefined || chosen===null){
+                sel.style.borderColor = "var(--border)";
+              } else {
+                sel.style.borderColor = (chosen===correctIndex) ? "var(--accent-2)" : "var(--danger)";
+              }
+            });
+          }
+          if(!r || !Object.keys(val).length || !allChosen){
+            unanswered++;
+          } else if(allCorrect){
+            correct++;
+          } else {
+            incorrect++;
+          }
+          toggleExplain(q.id, true);
+          if(r){ r.graded=true; r.correct=allCorrect && allChosen; }
+          return; // handled counters for match above
+        }
+
+        if(q.type==="mc"||q.type==="tf"){
+          if(r && r.hasOwnProperty("correct")){
+            if(r.correct) correct++; else incorrect++;
+          }
+        }
+      });
+      const total = filtered.length;
+      els.correctCount.textContent = correct;
+      els.incorrectCount.textContent = incorrect;
+      els.unansweredCount.textContent = unanswered;
+      const denom = Math.max(1, total - countType(filtered,"sa")); // exclude SA from percentage
+      const pct = Math.round((correct/denom)*100);
+      els.scoreBar.style.width = pct + "%";
+      els.scorePanel.classList.remove("hidden");
+    }
+
+    function countType(arr, t){ return arr.filter(q=>q.type===t).length; }
+
+    // Event bindings
+    els.lessonFilter.addEventListener("change", applyFilters);
+    els.typeFilter.addEventListener("change", applyFilters);
+    els.shuffleBtn.addEventListener("click", ()=>{
+      shuffle(filtered);
+      render();
+    });
+    els.resetBtn.addEventListener("click", ()=>resetAnswers());
+    els.toggleMode.addEventListener("click", ()=>{
+      setMode(mode==="study" ? "test" : "study");
+    });
+    els.submitBtn.addEventListener("click", ()=>{
+      if(mode!=="test") return;
+      grade();
+    });
+    els.reviewBtn.addEventListener("click", ()=>{
+      showAllExplanations = !showAllExplanations;
+      document.querySelectorAll(".explain").forEach(e=> e.style.display = showAllExplanations ? "block":"none");
+    });
+    els.retryBtn.addEventListener("click", ()=>{
+      // Filter to missed/unanswered (excluding SA)
+      const missedIds = filtered.filter(q=>{
+        const r = responses[q.id];
+        if(q.type==="sa") return false;
+        if(!r) return true;
+        return r.correct===false || r.graded!==true;
+      }).map(q=>q.id);
+      if(missedIds.length===0){
+        alert("No missed or unanswered auto-graded questions to retry.");
+        return;
+      }
+      filtered = filtered.filter(q=> missedIds.includes(q.id));
+      resetAnswers(false);
+      els.qCount.textContent = filtered.length;
+    });
+    els.showAllExp.addEventListener("click", ()=>{
+      showAllExplanations = !showAllExplanations;
+      document.querySelectorAll(".explain").forEach(e=> e.style.display = showAllExplanations ? "block":"none");
+    });
+    els.downloadBtn.addEventListener("click", ()=>{
+      const payload = {
+        mode,
+        timestamp: new Date().toISOString(),
+        filters: {lesson: els.lessonFilter.value, type: els.typeFilter.value},
+        responses,
+        questions: filtered.map(q=>({id:q.id, q:q.q, type:q.type, lesson:q.lesson}))
+      };
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "civil-war-quiz-results.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e)=>{
+      if(e.key.toLowerCase()==="r"){ resetAnswers(); }
+      if(e.key.toLowerCase()==="n"){
+        // focus next card
+        const cards = [...document.querySelectorAll(".card")];
+        const idx = cards.findIndex(c=> c===document.activeElement);
+        const next = cards[(idx+1)%cards.length];
+        next?.focus();
+      }
+      if(["1","2","3","4"].includes(e.key)){
+        const focused = document.activeElement?.closest(".card") || document.activeElement;
+        const radios = focused ? focused.querySelectorAll('label.opt input[type="radio"]') : null;
+        if(radios && radios.length){
+          const i = Number(e.key)-1;
+          if(i<radios.length){
+            const input = radios[i];
+            input.checked = true;
+            input.closest("label").click();
+          }
+        }
+      }
+    });
+
+    // Initialize
+    applyFilters();
+    setMode("study");
+  </script>
+</body>
+</html>
