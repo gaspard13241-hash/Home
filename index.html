@@ -94,6 +94,21 @@
       background: #00bba7;
       transform: scale(1.05);
     }
+    /* Styles for the button group within the card */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+      justify-content: center;
+      gap: 10px; /* Space between buttons */
+      margin-top: 1.2rem; /* Add some space above the buttons */
+    }
+    .button-group .btn {
+      flex-grow: 1; /* Allows buttons to grow and fill available space */
+      max-width: 180px; /* Limits the max width of each button */
+      padding: 0.6rem 1rem; /* Adjust padding for two buttons */
+      font-size: 0.9rem; /* Adjust font size for two buttons */
+    }
+
     footer {
       margin-top: auto;
       padding: 1.2rem;
@@ -104,6 +119,10 @@
     @media (max-width: 500px) {
       header h1 {
         font-size: 1.8rem;
+      }
+      .button-group .btn {
+        padding: 0.5rem 0.8rem; /* Smaller padding on very small screens */
+        font-size: 0.8rem;
       }
     }
   </style>
@@ -200,7 +219,10 @@
       <div class="icon">🐍</div>
       <h2>Snake (Arcade)</h2>
       <p>Classic arcade game. Navigate the snake with arrow keys, grow, and avoid obstacles!</p>
-      <a href="https://gaspard13241-hash.github.io/Home/snake" target="_blank" class="btn">Play Snake</a>
+      <div class="button-group">
+        <a href="https://gaspard13241-hash.github.io/Home/snake" target="_blank" class="btn">Play Big Grid</a>
+        <a href="https://gaspard13241-hash.github.io/Home/Snake" target="_blank" class="btn">Play Little Grid</a>
+      </div>
     </div>
   </main>
 
