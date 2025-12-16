@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Snake (Arcade) — Arrow Keys</title>
+  <style>
+    :root{
+      --bg:#05060a;
+      --grid:#0d1430;
+      --neon:#66ffd1;
+      --neon2:#6aa7ff;
+      --danger:#ff4d6d;
+      --text:#e9ecff;
+      --muted:#aab1d6;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(1000px 700px at 20% 10%, rgba(102,255,209,.10), transparent 60%),
+        radial-gradient(900px 650px at 80% 20%, rgba(106,167,255,.10), transparent 60%),
+        radial-gradient(900px 650px at 50% 90%, rgba(255,77,109,.08), transparent 55%),
+        linear-gradient(180deg, #02030a, var(--bg));
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    .wrap{ width:min(740px, 94vw); display:grid; gap:12px; }
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .title{ display:flex; flex-direction:column; gap:2px; line-height:1.1; }
+    .title strong{ font-size:14px; letter-spacing:.08em; text-transform:uppercase }
+    .title span{ font-size:12px; color:var(--muted) }
+    .hud{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:flex-end; }
+    .pill{
+      padding:8px 10px; border-radius:999px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.12);
+      font-variant-numeric: tabular-nums;
+      display:flex; gap:8px; align-items:center; white-space:nowrap;
+    }
+    .pill b{ color:var(--neon) }
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(102,255,209,.18), rgba(102,255,209,.08));
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow: 0 10px 24px rgba(102,255,209,.12);
+    }
+    button:hover{ filter:brightness(1.08) }
+    button:active{ transform: translateY(1px) }
+
+    .stage{
+      position:relative;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(900px 700px at 50% 0%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.45));
+      box-shadow: var(--shadow);
+      touch-action: none;
+      /* --- START MODIFICATION --- */
+      max-width: 400px; /* Limit the stage's maximum width */
+      margin: 0 auto;  /* Center the stage if its parent is wider */
+      /* --- END MODIFICATION --- */
+    }
+    canvas{ display:block; width:100%; height:auto; image-rendering: pixelated; }
+
+    .overlay{
+      position:absolute; inset:0; display:grid; place-items:center;
+    }
+    .card{
+      width:min(520px, 92%);
+      padding:16px 16px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(10,14,26,.82), rgba(6,8,16,.72));
+      backdrop-filter: blur(10px);
+      box-shadow: 0 24px 80px rgba(0,0,0,.6);
+      text-align:center;
+      display:none;
+    }
+    .card h2{
+      margin:0 0 6px;
+      letter-spacing:.08em; text-transform:uppercase;
+      font-size:18px;
+    }
+    .card p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+    .hint{ margin-top:10px; font-size:12px; color:var(--muted); }
+    .kbd{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.30);
+      color:var(--text);
+      font-weight:600;
+      font-size:12px;
+      margin:0 3px;
+    }
+
+    @media (max-width:520px){
+      .hud{justify-content:flex-start}
+      button{width:100%}
+      .pill{width:100%; justify-content:space-between}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <strong>Snake</strong>
+        <span>Use <span class="kbd">Arrow</span> keys • Space pause • Enter start/restart</span>
+      </div>
+      <div class="hud">
+        <div class="pill">Score <b id="score">0</b></div>
+        <div class="pill">Best <b id="best">0</b></div>
+        <div class="pill">Speed <b id="speed">10</b></div>
+        <button id="restartBtn" type="button">Restart</button>
+      </div>
+    </header>
+
+    <div class="stage">
+      <!-- --- START MODIFICATION --- -->
+      <canvas id="game" width="400" height="400"></canvas>
+      <!-- --- END MODIFICATION --- -->
+      <div class="overlay">
+        <div class="card" id="card">
+          <h2 id="cardTitle">Ready</h2>
+          <p id="cardText">
+            Press <span class="kbd">Enter</span> to start.<br/>
+            Use <span class="kbd">←</span><span class="kbd">↑</span><span class="kbd">→</span><span class="kbd">↓</span> to move.
+          </p>
+          <div class="row">
+            <button id="startBtn" type="button">Start</button>
+            <button id="restartBtn2" type="button" style="background:linear-gradient(180deg, rgba(106,167,255,.20), rgba(106,167,255,.08)); box-shadow: 0 10px 24px rgba(106,167,255,.14);">Restart</button>
+          </div>
+          <div class="hint">No WASD. No instant 180° turns (same rule as your Python version).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // Fixes/improvements vs previous version:
+  // - Reliable start/pause states (game starts when you press Enter or Start).
+  // - Arrow keys only (no WASD).
+  // - Prevent page scrolling on arrow keys/space.
+  // - Food spawns on grid and never on snake.
+  // - Clear, deterministic update loop (setInterval-style timing via accumulator).
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const scoreEl = document.getElementById("score");
+  const bestEl = document.getElementById("best");
+  const speedEl = document.getElementById("speed");
+
+  const card = document.getElementById("card");
+  const cardTitle = document.getElementById("cardTitle");
+  const cardText = document.getElementById("cardText");
+
+  const restartBtn = document.getElementById("restartBtn");
+  const restartBtn2 = document.getElementById("restartBtn2");
+  const startBtn = document.getElementById("startBtn");
+
+  // --- START MODIFICATION ---
+  const CANVAS = 400; // Changed from 600
+  const CELL = 20;
+  const GRID = CANVAS / CELL; // Now 20 (was 30)
+  // --- END MODIFICATION ---
+  const BASE_STEP_MS = 100;
+
+  const COLORS = {
+    bg: "#05060a",
+    gridA: "rgba(13, 20, 48, .60)",
+    gridB: "rgba(13, 20, 48, .25)",
+    snakeA: "rgba(233,236,255,.92)",
+    snakeB: "rgba(233,236,255,.55)",
+    headA: "rgba(102,255,209,1)",
+    headB: "rgba(106,167,255,.85)",
+    glowSnake: "rgba(102,255,209,.55)",
+    glowHead: "rgba(102,255,209,.85)",
+    food: "#4d7cff",
+    glowFood: "rgba(106,167,255,.9)",
+  };
+
+  const DIR = {
+    UP:    {x: 0, y:-1, name:"UP"},
+    DOWN:  {x: 0, y: 1, name:"DOWN"},
+    LEFT:  {x:-1, y: 0, name:"LEFT"},
+    RIGHT: {x: 1, y: 0, name:"RIGHT"},
+  };
+  const OPP = { UP:"DOWN", DOWN:"UP", LEFT:"RIGHT", RIGHT:"LEFT" };
+
+  let best = Number(localStorage.getItem("snake_best") || 0);
+  bestEl.textContent = best;
+
+  let snake, dir, queuedDir, food, score;
+  let alive = true;
+  let running = false;  // true only after start
+  let paused = false;
+
+  let lastT = performance.now();
+  let acc = 0;
+
+  function clampStepMs(){
+    // Slight speed-up with score, capped to keep playable
+    return Math.max(55, BASE_STEP_MS - Math.floor(score / 5) * 5);
+  }
+
+  function syncHud(){
+    scoreEl.textContent = score;
+    speedEl.textContent = Math.round(1000 / clampStepMs());
+    if (score > best){
+      best = score;
+      localStorage.setItem("snake_best", String(best));
+      bestEl.textContent = best;
+    }
+  }
+
+  function setOverlay(show, title, html){
+    card.style.display = show ? "block" : "none";
+    if (title != null) cardTitle.textContent = title;
+    if (html != null) cardText.innerHTML = html;
+  }
+
+  function resetState(){
+    // Python start positions: (0,0),(-20,0),(-40,0) => center + two left
+    // --- START MODIFICATION ---
+    // Adjusted for new GRID size of 20x20
+    snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+    // --- END MODIFICATION ---
+    dir = DIR.RIGHT;
+    queuedDir = dir;
+    score = 0;
+    alive = true;
+    paused = false;
+    running = false;
+    acc = 0;
+    spawnFood();
+    syncHud();
+  }
+
+  function randInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function spawnFood(){
+    while (true){
+      const fx = randInt(0, GRID - 1);
+      const fy = randInt(0, GRID - 1);
+      if (!snake.some(s => s.x === fx && s.y === fy)){
+        food = {x: fx, y: fy};
+        return;
+      }
+    }
+  }
+
+  function tryQueueDir(newDir){
+    // prevent 180 turn relative to current direction (Python rule)
+    if (newDir.name === OPP[dir.name]) return;
+    queuedDir = newDir;
+  }
+
+  function startGame(){
+    if (!alive) return;
+    running = true;
+    paused = false;
+    setOverlay(false);
+    lastT = performance.now();
+  }
+
+  function pauseToggle(){
+    if (!alive || !running) return;
+    paused = !paused;
+    if (paused){
+      setOverlay(true, "Paused", `Press <span class="kbd">Space</span> to resume.`);
+    } else {
+      setOverlay(false);
+      lastT = performance.now();
+    }
+  }
+
+  function gameOver(){
+    alive = false;
+    running = false;
+    syncHud();
+    setOverlay(
+      true,
+      "Game Over",
+      `Final score: <span class="kbd">${score}</span><br/>Press <span class="kbd">Enter</span> or click Restart.`
+    );
+  }
+
+  function step(){
+    if (!alive || !running || paused) return;
+
+    // apply queued direction at tick boundary
+    dir = queuedDir;
+
+    const head = snake[0];
+    const newHead = { x: head.x + dir.x, y: head.y + dir.y };
+
+    // wall collision
+    if (newHead.x < 0 || newHead.x >= GRID || newHead.y < 0 || newHead.y >= GRID){
+      gameOver();
+      return;
+    }
+
+    // move
+    snake.unshift(newHead);
+
+    // eat?
+    if (newHead.x === food.x && newHead.y === food.y){
+      score += 1;
+      spawnFood();
+      syncHud();
+      // grow: do not remove tail
+    } else {
+      snake.pop();
+    }
+
+    // tail collision
+    for (let i = 1; i < snake.length; i++){
+      if (snake[i].x === newHead.x && snake[i].y === newHead.y){
+        gameOver();
+        return;
+      }
+    }
+  }
+
+  // --- drawing ---
+  function clear(){
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(0,0,CANVAS,CANVAS);
+
+    const v = ctx.createRadialGradient(CANVAS/2, CANVAS/2 - 40, 80, CANVAS/2, CANVAS/2, CANVAS/2 + 20); // Adjusted gradient for new CANVAS size
+    v.addColorStop(0, "rgba(255,255,255,.04)");
+    v.addColorStop(1, "rgba(0,0,0,.38)");
+    ctx.fillStyle = v;
+    ctx.fillRect(0,0,CANVAS,CANVAS);
+  }
+
+  function drawGrid(){
+    ctx.save();
+    ctx.lineWidth = 1;
+    for (let i=0;i<=GRID;i++){
+      const p = i*CELL + 0.5;
+      ctx.strokeStyle = (i%5===0) ? COLORS.gridA : COLORS.gridB;
+
+      ctx.beginPath(); ctx.moveTo(p,0); ctx.lineTo(p,CANVAS); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,p); ctx.lineTo(CANVAS,p); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function roundRect(x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function drawFood(){
+    const px = food.x * CELL, py = food.y * CELL;
+    const cx = px + CELL/2, cy = py + CELL/2;
+    const r = CELL * 0.30;
+
+    ctx.save();
+    ctx.shadowColor = COLORS.glowFood;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = COLORS.food;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+
+    ctx.shadowBlur = 0;
+    const g = ctx.createRadialGradient(cx-3, cy-4, 2, cx, cy, r+6);
+    g.addColorStop(0, "rgba(255,255,255,.75)");
+    g.addColorStop(0.35, "rgba(255,255,255,.20)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(cx, cy, r+6, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSnake(){
+    for (let i = snake.length - 1; i >= 0; i--){
+      const s = snake[i];
+      const x = s.x*CELL, y = s.y*CELL;
+      const isHead = i === 0;
+
+      const inset = isHead ? 2 : 3;
+      const w = CELL - inset*2;
+      const h = CELL - inset*2;
+
+      ctx.save();
+      ctx.shadowBlur = isHead ? 22 : 14;
+      ctx.shadowColor = isHead ? COLORS.glowHead : COLORS.glowSnake;
+
+      const gx = ctx.createLinearGradient(x, y, x + CELL, y + CELL);
+      if (isHead){
+        gx.addColorStop(0, COLORS.headA);
+        gx.addColorStop(1, COLORS.headB);
+      } else {
+        gx.addColorStop(0, COLORS.snakeA);
+        gx.addColorStop(1, COLORS.snakeB);
+      }
+      ctx.fillStyle = gx;
+
+      roundRect(x+inset, y+inset, w, h, 6);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = isHead ? "rgba(102,255,209,.55)" : "rgba(255,255,255,.22)";
+      ctx.lineWidth = 1;
+      roundRect(x+inset+0.5, y+inset+0.5, w-1, h-1, 6);
+      ctx.stroke();
+
+      if (isHead){
+        const cx = x + CELL/2, cy = y + CELL/2;
+        let ex1=0, ey1=0, ex2=0, ey2=0;
+        if (dir.name === "RIGHT"){ ex1 = 6; ey1 = -4; ex2 = 6; ey2 = 4; }
+        if (dir.name === "LEFT"){  ex1 = -6; ey1 = -4; ex2 = -6; ey2 = 4; }
+        if (dir.name === "UP"){    ex1 = -4; ey1 = -6; ex2 = 4; ey2 = -6; }
+        if (dir.name === "DOWN"){  ex1 = -4; ey1 = 6; ex2 = 4; ey2 = 6; }
+
+        ctx.fillStyle = "rgba(0,0,0,.55)";
+        ctx.beginPath(); ctx.arc(cx+ex1, cy+ey1, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx+ex2, cy+ey2, 2.2, 0, Math.PI*2); ctx.fill();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  function draw(){
+    clear();
+    drawGrid();
+    drawFood();
+    drawSnake();
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,.10)";
+    ctx.lineWidth = 2;
+    roundRect(1,1,CANVAS-2,CANVAS-2,18);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function frame(t){
+    const dt = Math.min(50, t - lastT);
+    lastT = t;
+    acc += dt;
+
+    const stepMs = clampStepMs();
+    while (acc >= stepMs){
+      step();
+      acc -= stepMs;
+    }
+
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  // Arrow keys only + prevent scroll
+  window.addEventListener("keydown", (e) => {
+    const k = e.key;
+
+    if (k === "ArrowUp" || k === "ArrowDown" || k === "ArrowLeft" || k === "ArrowRight" || k === " "){
+      e.preventDefault();
+    }
+
+    if (k === "ArrowUp") tryQueueDir(DIR.UP);
+    else if (k === "ArrowDown") tryQueueDir(DIR.DOWN);
+    else if (k === "ArrowLeft") tryQueueDir(DIR.LEFT);
+    else if (k === "ArrowRight") tryQueueDir(DIR.RIGHT);
+    else if (k === "Enter"){
+      if (!alive){
+        resetState();
+        setOverlay(true, "Ready", `Press <span class="kbd">Enter</span> to start.<br/>Use <span class="kbd">←</span><span class="kbd">↑</span><span class="kbd">→</span><span class="kbd">↓</span>.`);
+      } else if (!running){
+        startGame();
+      } else if (paused){
+        pauseToggle();
+      }
+    }
+    else if (k === " "){
+      pauseToggle();
+    }
+  }, {passive:false});
+
+  function restart(){
+    resetState();
+    setOverlay(true, "Ready", `Press <span class="kbd">Enter</span> to start.<br/>Use <span class="kbd">←</span><span class="kbd">↑</span><span class="kbd">→</span><span class="kbd">↓</span>.`);
+  }
+
+  restartBtn.addEventListener("click", restart);
+  restartBtn2.addEventListener("click", restart);
+  startBtn.addEventListener("click", () => {
+    if (!alive) return;
+    startGame();
+    // Focus window for keyboard on some browsers
+    canvas.focus?.();
+  });
+
+  // Init
+  resetState();
+  setOverlay(true, "Ready", `Press <span class="kbd">Enter</span> to start.<br/>Use <span class="kbd">←</span><span class="kbd">↑</span><span class="kbd">→</span><span class="kbd">↓</span> to move.`);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
