@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown to Celebrations</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3, #f77062);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        #title-screen {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        #countdown {
+            font-size: 3em;
+            margin: 30px 0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .quick-links {
+            margin: 30px 0;
+        }
+
+        .quick-links a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .quick-links a:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        #custom-countdown {
+            margin: 30px 0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        #custom-countdown input {
+            margin: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        #custom-countdown button {
+            margin: 10px;
+            padding: 8px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .event-page {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .event-page button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <div id="title-screen">
+        <h1>Countdown to the Event</h1>
+        <div id="countdown">00:00:00:00</div>
+
+        <h2>Quick Links to Famous Celebrations</h2>
+        <div class="quick-links">
+            <a href="#" onclick="openEvent('new-year')">New Year’s Eve</a>
+            <a href="#" onclick="openEvent('christmas')">Christmas</a>
+            <a href="#" onclick="openEvent('halloween')">Halloween</a>
+            <a href="#" onclick="openEvent('valentine')">Valentine’s Day</a>
+            <a href="#" onclick="openEvent('end-school')">End of School</a>
+        </div>
+
+        <h2>Set Your Own Countdown</h2>
+        <form id="custom-countdown">
+            <input type="text" id="event-name" placeholder="Event Name">
+            <input type="datetime-local" id="event-date">
+            <button type="button" onclick="setCustomCountdown()">Set Custom Countdown</button>
+        </form>
+    </div>
+
+    <!-- Event Pages -->
+    <div id="new-year" class="event-page">
+        <h1>New Year’s Eve</h1>
+        <p>Celebrate the start of a new year with fireworks, parties, and resolutions!</p>
+        <button onclick="returnToTitleScreen()">Back to Home</button>
+    </div>
+
+    <div id="christmas" class="event-page">
+        <h1>Christmas</h1>
+        <p>Enjoy the festive season with gifts, decorations, and family gatherings.</p>
+        <button onclick="returnToTitleScreen()">Back to Home</button>
+    </div>
+
+    <div id="halloween" class="event-page">
+        <h1>Halloween</h1>
+        <p>Dress up, trick-or-treat, and enjoy spooky fun!</p>
+        <button onclick="returnToTitleScreen()">Back to Home</button>
+    </div>
+
+    <div id="valentine" class="event-page">
+        <h1>Valentine’s Day</h1>
+        <p>Celebrate love and affection with gifts, cards, and romantic gestures.</p>
+        <button onclick="returnToTitleScreen()">Back to Home</button>
+    </div>
+
+    <div id="end-school" class="event-page">
+        <h1>End of School</h1>
+        <p>Time to relax and enjoy your break! School ends on June 26 at 2:30 PM.</p>
+        <button onclick="returnToTitleScreen()">Back to Home</button>
+    </div>
+
+    <script>
+        // Set the default countdown date (June 26, 2026, 2:30 PM Hong Kong Time)
+        let countDownDate = new Date("June 26, 2026 14:30:00").getTime();
+        let eventName = "End of School";
+
+        // Update the countdown every second
+        let countdownInterval = setInterval(function() {
+            let now = new Date().getTime();
+            let distance = countDownDate - now;
+
+            // Calculate days, hours, minutes, and seconds
+            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Display the countdown
+            document.getElementById("countdown").innerHTML =
+                days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+            // If the countdown is finished, trigger confetti
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+                triggerConfetti();
+            }
+        }, 1000);
+
+        // Trigger confetti animation
+        function triggerConfetti() {
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+
+        // Open an event page
+        function openEvent(eventId) {
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById(eventId).style.display = 'block';
+        }
+
+        // Return to the title screen
+        function returnToTitleScreen() {
+            document.querySelectorAll('.event-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            document.getElementById('title-screen').style.display = 'block';
+        }
+
+        // Set a custom countdown
+        function setCustomCountdown() {
+            let name = document.getElementById('event-name').value;
+            let date = document.getElementById('event-date').value;
+
+            if (name && date) {
+                eventName = name;
+                countDownDate = new Date(date).getTime();
+                document.getElementById('countdown').innerHTML = "Countdown set for " + name;
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(function() {
+                    let now = new Date().getTime();
+                    let distance = countDownDate - now;
+
+                    let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    document.getElementById("countdown").innerHTML =
+                        days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+                    if (distance < 0) {
+                        clearInterval(countdownInterval);
+                        document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+                        triggerConfetti();
+                    }
+                }, 1000);
+            } else {
+                alert("Please enter both an event name and a date/time.");
+            }
+        }
+    </script>
+</body>
+</html>
