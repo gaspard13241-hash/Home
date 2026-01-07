@@ -1,609 +1,1173 @@
-+   1 <!DOCTYPE html>
-+   2 <html lang="en">
-+   3 <head>
-+   4     <meta charset="UTF-8">
-+   5     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-+   6     <title>Rage Game</title>
-+   7     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-+   8     <style>
-+   9         :root {
-+  10             --bg-primary: #0a0a1a;
-+  11             --bg-secondary: #12122a;
-+  12             --neon-pink: #ff006e;
-+  13             --neon-cyan: #00f5ff;
-+  14             --neon-green: #39ff14;
-+  15             --neon-orange: #ff9500;
-+  16             --neon-purple: #bf00ff;
-+  17             --text-primary: #ffffff;
-+  18             --text-secondary: #a0a0c0;
-+  19         }
-+  20 
-+  21         .dark {
-+  22             --bg-primary: #0a0a1a;
-+  23             --bg-secondary: #12122a;
-+  24         }
-+  25 
-+  26         * {
-+  27             margin: 0;
-+  28             padding: 0;
-+  29             box-sizing: border-box;
-+  30         }
-+  31 
-+  32         body {
-+  33             font-family: 'Orbitron', sans-serif;
-+  34             background: var(--bg-primary);
-+  35             min-height: 100vh;
-+  36             display: flex;
-+  37             flex-direction: column;
-+  38             align-items: center;
-+  39             justify-content: center;
-+  40             overflow: hidden;
-+  41             color: var(--text-primary);
-+  42         }
-+  43 
-+  44         /* Animated background */
-+  45         .bg-pattern {
-+  46             position: fixed;
-+  47             top: 0;
-+  48             left: 0;
-+  49             width: 100%;
-+  50             height: 100%;
-+  51             background: 
-+  52                 linear-gradient(45deg, transparent 48%, rgba(255, 0, 110, 0.03) 49%, rgba(255, 0, 110, 0.03) 51%, transparent 52%),
-+  53                 linear-gradient(-45deg, transparent 48%, rgba(0, 245, 255, 0.03) 49%, rgba(0, 245, 255, 0.03) 51%, transparent 52%);
-+  54             background-size: 60px 60px;
-+  55             animation: bgMove 20s linear infinite;
-+  56             pointer-events: none;
-+  57             z-index: 0;
-+  58         }
-+  59 
-+  60         @keyframes bgMove {
-+  61             0% { transform: translate(0, 0); }
-+  62             100% { transform: translate(60px, 60px); }
-+  63         }
-+  64 
-+  65         .game-container {
-+  66             position: relative;
-+  67             z-index: 1;
-+  68             display: flex;
-+  69             flex-direction: column;
-+  70             align-items: center;
-+  71             gap: 15px;
-+  72             padding: 10px;
-+  73             width: 100%;
-+  74             max-width: 800px;
-+  75         }
-+  76 
-+  77         .header {
-+  78             display: flex;
-+  79             justify-content: space-between;
-+  80             align-items: center;
-+  81             width: 100%;
-+  82             max-width: 740px;
-+  83             padding: 0 10px;
-+  84             flex-wrap: wrap;
-+  85             gap: 10px;
-+  86         }
-+  87 
-+  88         .title {
-+  89             font-family: 'Press Start 2P', cursive;
-+  90             font-size: clamp(1.2rem, 4vw, 1.8rem);
-+  91             background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan), var(--neon-green));
-+  92             background-size: 200% auto;
-+  93             -webkit-background-clip: text;
-+  94             -webkit-text-fill-color: transparent;
-+  95             background-clip: text;
-+  96             animation: textGlow 3s ease-in-out infinite;
-+  97             text-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
-+  98         }
-+  99 
-+ 100         @keyframes textGlow {
-+ 101             0%, 100% { background-position: 0% center; }
-+ 102             50% { background-position: 200% center; }
-+ 103         }
-+ 104 
-+ 105         .stats {
-+ 106             display: flex;
-+ 107             gap: 20px;
-+ 108             font-size: clamp(0.7rem, 2vw, 0.9rem);
-+ 109         }
-+ 110 
-+ 111         .stat {
-+ 112             display: flex;
-+ 113             align-items: center;
-+ 114             gap: 8px;
-+ 115             padding: 8px 15px;
-+ 116             background: rgba(255, 255, 255, 0.05);
-+ 117             border: 1px solid rgba(255, 255, 255, 0.1);
-+ 118             border-radius: 25px;
-+ 119             backdrop-filter: blur(10px);
-+ 120         }
-+ 121 
-+ 122         .stat-icon {
-+ 123             font-size: 1.2em;
-+ 124         }
-+ 125 
-+ 126         .stat-value {
-+ 127             font-weight: 700;
-+ 128             color: var(--neon-cyan);
-+ 129         }
-+ 130 
-+ 131         #canvas-wrapper {
-+ 132             position: relative;
-+ 133             border-radius: 15px;
-+ 134             overflow: hidden;
-+ 135             box-shadow: 
-+ 136                 0 0 30px rgba(0, 245, 255, 0.3),
-+ 137                 0 0 60px rgba(255, 0, 110, 0.2),
-+ 138                 inset 0 0 100px rgba(0, 0, 0, 0.5);
-+ 139             border: 2px solid rgba(255, 255, 255, 0.1);
-+ 140         }
-+ 141 
-+ 142         #gameCanvas {
-+ 143             display: block;
-+ 144             background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
-+ 145         }
-+ 146 
-+ 147         .level-indicator {
-+ 148             position: absolute;
-+ 149             top: 10px;
-+ 150             left: 50%;
-+ 151             transform: translateX(-50%);
-+ 152             font-family: 'Press Start 2P', cursive;
-+ 153             font-size: clamp(0.6rem, 2vw, 0.8rem);
-+ 154             color: var(--neon-green);
-+ 155             text-shadow: 0 0 10px var(--neon-green);
-+ 156             animation: pulse 2s ease-in-out infinite;
-+ 157         }
-+ 158 
-+ 159         @keyframes pulse {
-+ 160             0%, 100% { opacity: 1; }
-+ 161             50% { opacity: 0.6; }
-+ 162         }
-+ 163 
-+ 164         .controls-info {
-+ 165             display: flex;
-+ 166             gap: 15px;
-+ 167             font-size: clamp(0.6rem, 1.5vw, 0.75rem);
-+ 168             color: var(--text-secondary);
-+ 169             flex-wrap: wrap;
-+ 170             justify-content: center;
-+ 171         }
-+ 172 
-+ 173         .control-key {
-+ 174             display: inline-flex;
-+ 175             align-items: center;
-+ 176             gap: 5px;
-+ 177         }
-+ 178 
-+ 179         .key {
-+ 180             background: rgba(255, 255, 255, 0.1);
-+ 181             padding: 5px 10px;
-+ 182             border-radius: 5px;
-+ 183             border: 1px solid rgba(255, 255, 255, 0.2);
-+ 184             font-family: 'Orbitron', sans-serif;
-+ 185             font-size: 0.9em;
-+ 186         }
-+ 187 
-+ 188         .credits {
-+ 189             margin-top: 10px;
-+ 190             text-align: center;
-+ 191             font-size: clamp(0.5rem, 1.2vw, 0.65rem);
-+ 192             color: var(--text-secondary);
-+ 193             opacity: 0.7;
-+ 194         }
-+ 195 
-+ 196         .credits span {
-+ 197             color: var(--neon-pink);
-+ 198         }
-+ 199 
-+ 200         /* Mobile controls */
-+ 201         .mobile-controls {
-+ 202             display: none;
-+ 203             position: fixed;
-+ 204             bottom: 20px;
-+ 205             left: 0;
-+ 206             right: 0;
-+ 207             padding: 0 20px;
-+ 208             justify-content: space-between;
-+ 209             z-index: 100;
-+ 210         }
-+ 211 
-+ 212         .control-btn {
-+ 213             width: 60px;
-+ 214             height: 60px;
-+ 215             border-radius: 50%;
-+ 216             background: rgba(255, 255, 255, 0.1);
-+ 217             border: 2px solid var(--neon-cyan);
-+ 218             color: var(--neon-cyan);
-+ 219             font-size: 24px;
-+ 220             display: flex;
-+ 221             align-items: center;
-+ 222             justify-content: center;
-+ 223             cursor: pointer;
-+ 224             touch-action: manipulation;
-+ 225             user-select: none;
-+ 226             transition: all 0.1s;
-+ 227         }
-+ 228 
-+ 229         .control-btn:active {
-+ 230             background: rgba(0, 245, 255, 0.3);
-+ 231             transform: scale(0.95);
-+ 232         }
-+ 233 
-+ 234         .control-group {
-+ 235             display: flex;
-+ 236             gap: 10px;
-+ 237         }
-+ 238 
-+ 239         .jump-btn {
-+ 240             width: 80px;
-+ 241             height: 80px;
-+ 242             border-color: var(--neon-green);
-+ 243             color: var(--neon-green);
-+ 244         }
-+ 245 
-+ 246         .jump-btn:active {
-+ 247             background: rgba(57, 255, 20, 0.3);
-+ 248         }
-+ 249 
-+ 250         @media (max-width: 768px) {
-+ 251             .mobile-controls {
-+ 252                 display: flex;
-+ 253             }
-+ 254             
-+ 255             .controls-info {
-+ 256                 display: none;
-+ 257             }
-+ 258 
-+ 259             .game-container {
-+ 260                 padding-bottom: 120px;
-+ 261             }
-+ 262         }
-+ 263 
-+ 264         /* Start screen overlay */
-+ 265         .overlay {
-+ 266             position: absolute;
-+ 267             top: 0;
-+ 268             left: 0;
-+ 269             width: 100%;
-+ 270             height: 100%;
-+ 271             background: rgba(10, 10, 26, 0.95);
-+ 272             display: flex;
-+ 273             flex-direction: column;
-+ 274             align-items: center;
-+ 275             justify-content: center;
-+ 276             z-index: 50;
-+ 277             border-radius: 15px;
-+ 278         }
-+ 279 
-+ 280         .overlay.hidden {
-+ 281             display: none;
-+ 282         }
-+ 283 
-+ 284         .overlay-title {
-+ 285             font-family: 'Press Start 2P', cursive;
-+ 286             font-size: clamp(1.5rem, 5vw, 2.5rem);
-+ 287             margin-bottom: 20px;
-+ 288             text-align: center;
-+ 289             background: linear-gradient(90deg, var(--neon-pink), var(--neon-orange));
-+ 290             -webkit-background-clip: text;
-+ 291             -webkit-text-fill-color: transparent;
-+ 292             background-clip: text;
-+ 293         }
-+ 294 
-+ 295         .overlay-text {
-+ 296             font-size: clamp(0.7rem, 2vw, 1rem);
-+ 297             color: var(--text-secondary);
-+ 298             margin-bottom: 30px;
-+ 299             text-align: center;
-+ 300             padding: 0 20px;
-+ 301         }
-+ 302 
-+ 303         .start-btn {
-+ 304             font-family: 'Orbitron', sans-serif;
-+ 305             font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-+ 306             padding: 15px 40px;
-+ 307             background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
-+ 308             border: none;
-+ 309             border-radius: 30px;
-+ 310             color: white;
-+ 311             cursor: pointer;
-+ 312             transition: all 0.3s;
-+ 313             box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
-+ 314         }
-+ 315 
-+ 316         .start-btn:hover {
-+ 317             transform: scale(1.05);
-+ 318             box-shadow: 0 0 50px rgba(255, 0, 110, 0.7);
-+ 319         }
-+ 320 
-+ 321         .win-stats {
-+ 322             margin-top: 20px;
-+ 323             font-size: clamp(0.8rem, 2vw, 1rem);
-+ 324             color: var(--neon-green);
-+ 325         }
-+ 326     </style>
-+ 327 </head>
-+ 328 <body>
-+ 329     <div class="bg-pattern"></div>
-+ 330     
-+ 331     <div class="game-container">
-+ 332         <div class="header">
-+ 333             <h1 class="title">RAGE GAME</h1>
-+ 334             <div class="stats">
-+ 335                 <div class="stat">
-+ 336                     <span class="stat-icon">⏱️</span>
-+ 337                     <span class="stat-value" id="timer">0.00</span>
-+ 338                 </div>
-+ 339                 <div class="stat">
-+ 340                     <span class="stat-icon">💀</span>
-+ 341                     <span class="stat-value" id="deaths">0</span>
-+ 342                 </div>
-+ 343                 <div class="stat">
-+ 344                     <span class="stat-icon">🪙</span>
-+ 345                     <span class="stat-value" id="coins">0</span>
-+ 346                 </div>
-+ 347             </div>
-+ 348         </div>
-+ 349 
-+ 350         <div id="canvas-wrapper">
-+ 351             <canvas id="gameCanvas" width="720" height="400"></canvas>
-+ 352             <div class="level-indicator" id="levelIndicator">LEVEL 1</div>
-+ 353             
-+ 354             <div class="overlay" id="startOverlay">
-+ 355                 <div class="overlay-title">RAGE GAME</div>
-+ 356                 <div class="overlay-text">Navigate through deadly obstacles!<br>Can you beat all 7 levels?</div>
-+ 357                 <button class="start-btn" id="startBtn">START GAME</button>
-+ 358             </div>
-+ 359 
-+ 360             <div class="overlay hidden" id="winOverlay">
-+ 361                 <div class="overlay-title">🎉 YOU WIN! 🎉</div>
-+ 362                 <div class="win-stats" id="winStats"></div>
-+ 363                 <button class="start-btn" id="restartBtn">PLAY AGAIN</button>
-+ 364             </div>
-+ 365         </div>
-+ 366 
-+ 367         <div class="controls-info">
-+ 368             <div class="control-key"><span class="key">←</span><span class="key">→</span> Move</div>
-+ 369             <div class="control-key"><span class="key">↑</span><span class="key">SPACE</span> Jump</div>
-+ 370             <div class="control-key"><span class="key">R</span> Restart Level</div>
-+ 371         </div>
-+ 372 
-+ 373         <div class="credits">
-+ 374             Gameplay by <span>Oscar</span> • Web version by <span>Gaspard</span>
-+ 375         </div>
-+ 376     </div>
-+ 377 
-+ 378     <div class="mobile-controls">
-+ 379         <div class="control-group">
-+ 380             <button class="control-btn" id="leftBtn">◀</button>
-+ 381             <button class="control-btn" id="rightBtn">▶</button>
-+ 382         </div>
-+ 383         <button class="control-btn jump-btn" id="jumpBtn">▲</button>
-+ 384     </div>
-+ 385 
-+ 386     <script>
-+ 387         // Dark mode detection
-+ 388         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-+ 389             document.documentElement.classList.add('dark');
-+ 390         }
-+ 391         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-+ 392             if (event.matches) {
-+ 393                 document.documentElement.classList.add('dark');
-+ 394             } else {
-+ 395                 document.documentElement.classList.remove('dark');
-+ 396             }
-+ 397         });
-+ 398 
-+ 399         const canvas = document.getElementById('gameCanvas');
-+ 400         const ctx = canvas.getContext('2d');
-+ 401 
-+ 402         // Game state
-+ 403         let gameRunning = false;
-+ 404         let currentLevel = 1;
-+ 405         let deaths = 0;
-+ 406         let coins = 0;
-+ 407         let timer = 0;
-+ 408         let timerInterval = null;
-+ 409 
-+ 410         // Player
-+ 411         const player = {
-+ 412             x: 50,
-+ 413             y: 300,
-+ 414             width: 24,
-+ 415             height: 24,
-+ 416             vx: 0,
-+ 417             vy: 0,
-+ 418             onGround: false,
-+ 419             color: '#00f5ff'
-+ 420         };
-+ 421 
-+ 422         // Physics
-+ 423         const GRAVITY = 0.6;
-+ 424         const JUMP_FORCE = -14;
-+ 425         const MOVE_SPEED = 5;
-+ 426         const FRICTION = 0.85;
-+ 427         const BOUNCE_FORCE = -18;
-+ 428 
-+ 429         // Input
-+ 430         const keys = {
-+ 431             left: false,
-+ 432             right: false,
-+ 433             up: false
-+ 434         };
-+ 435 
-+ 436         // Level definitions
-+ 437         const levels = {
-+ 438             1: {
-+ 439                 spawn: { x: 50, y: 300 },
-+ 440                 platforms: [
-+ 441                     { x: 0, y: 360, w: 720, h: 40, type: 'floor' },
-+ 442                     { x: 150, y: 290, w: 80, h: 20, type: 'block' },
-+ 443                     { x: 280, y: 220, w: 80, h: 20, type: 'block' },
-+ 444                     { x: 420, y: 150, w: 100, h: 20, type: 'bouncy' },
-+ 445                     { x: 580, y: 280, w: 80, h: 20, type: 'block' },
-+ 446                     { x: 650, y: 200, w: 70, h: 160, type: 'exit' }
-+ 447                 ],
-+ 448                 hazards: [
-+ 449                     { x: 100, y: 340, w: 40, h: 20, type: 'spike' },
-+ 450                     { x: 350, y: 340, w: 60, h: 20, type: 'spike' }
-+ 451                 ],
-+ 452                 coins: [
-+ 453                     { x: 190, y: 250, collected: false },
-+ 454                     { x: 460, y: 110, collected: false }
-+ 455                 ]
-+ 456             },
-+ 457             2: {
-+ 458                 spawn: { x: 50, y: 300 },
-+ 459                 platforms: [
-+ 460                     { x: 0, y: 360, w: 200, h: 40, type: 'floor' },
-+ 461                     { x: 250, y: 320, w: 60, h: 20, type: 'bouncy' },
-+ 462                     { x: 360, y: 250, w: 80, h: 20, type: 'block' },
-+ 463                     { x: 500, y: 180, w: 80, h: 20, type: 'block' },
-+ 464                     { x: 350, y: 120, w: 100, h: 20, type: 'bouncy' },
-+ 465                     { x: 150, y: 80, w: 80, h: 20, type: 'block' },
-+ 466                     { x: 0, y: 30, w: 80, h: 30, type: 'teleport', target: { x: 650, y: 300 } },
-+ 467                     { x: 620, y: 360, w: 100, h: 40, type: 'floor' },
-+ 468                     { x: 650, y: 280, w: 70, h: 80, type: 'exit' }
-+ 469                 ],
-+ 470                 hazards: [
-+ 471                     { x: 200, y: 340, w: 50, h: 20, type: 'spike' },
-+ 472                     { x: 440, y: 230, w: 50, h: 20, type: 'spike' },
-+ 473                     { x: 580, y: 160, w: 40, h: 20, type: 'spike' }
-+ 474                 ],
-+ 475                 coins: [
-+ 476                     { x: 400, y: 80, collected: false },
-+ 477                     { x: 660, y: 240, collected: false }
-+ 478                 ]
-+ 479             },
-+ 480             3: {
-+ 481                 spawn: { x: 50, y: 300 },
-+ 482                 platforms: [
-+ 483                     { x: 0, y: 360, w: 150, h: 40, type: 'floor' },
-+ 484                     { x: 200, y: 320, w: 60, h: 20, type: 'block' },
-+ 485                     { x: 300, y: 270, w: 60, h: 20, type: 'block' },
-+ 486                     { x: 400, y: 220, w: 60, h: 20, type: 'block' },
-+ 487                     { x: 500, y: 170, w: 60, h: 20, type: 'bouncy' },
-+ 488                     { x: 400, y: 100, w: 80, h: 20, type: 'safe' },
-+ 489                     { x: 250, y: 60, w: 100, h: 20, type: 'safe' },
-+ 490                     { x: 80, y: 100, w: 80, h: 20, type: 'teleport', target: { x: 650, y: 100 } },
-+ 491                     { x: 600, y: 150, w: 120, h: 20, type: 'floor' },
-+ 492                     { x: 600, y: 360, w: 120, h: 40, type: 'floor' },
-+ 493                     { x: 650, y: 70, w: 70, h: 80, type: 'exit' }
-+ 494                 ],
-+ 495                 hazards: [
-+ 496                     { x: 150, y: 340, w: 50, h: 20, type: 'spike' },
-+ 497                     { x: 260, y: 250, w: 40, h: 20, type: 'spike' },
-+ 498                     { x: 360, y: 200, w: 40, h: 20, type: 'spike' },
-+ 499                     { x: 560, y: 150, w: 30, h: 20, type: 'spike' }
-+ 500                 ],
-+ 501                 coins: [
-+ 502                     { x: 440, y: 60, collected: false },
-+ 503                     { x: 300, y: 20, collected: false },
-+ 504                     { x: 660, y: 320, collected: false }
-+ 505                 ]
-+ 506             },
-+ 507             4: {
-+ 508                 spawn: { x: 50, y: 300 },
-+ 509                 platforms: [
-+ 510                     { x: 0, y: 360, w: 100, h: 40, type: 'floor' },
-+ 511                     { x: 150, y: 360, w: 40, h: 40, type: 'bouncy' },
-+ 512                     { x: 250, y: 280, w: 80, h: 20, type: 'block' },
-+ 513                     { x: 380, y: 220, w: 80, h: 20, type: 'block' },
-+ 514                     { x: 250, y: 140, w: 80, h: 20, type: 'safe' },
-+ 515                     { x: 100, y: 80, w: 100, h: 20, type: 'block' },
-+ 516                     { x: 500, y: 300, w: 80, h: 20, type: 'safe' },
-+ 517                     { x: 620, y: 360, w: 100, h: 40, type: 'floor' },
-+ 518                     { x: 650, y: 280, w: 70, h: 80, type: 'exit' }
-+ 519                 ],
-+ 520                 hazards: [
-+ 521                     { x: 100, y: 340, w: 50, h: 20, type: 'spike' },
-+ 522                     { x: 200, y: 340, w: 50, h: 20, type: 'spike' },
-+ 523                     { x: 330, y: 260, w: 50, h: 20, type: 'spike' },
-+ 524                     { x: 460, y: 200, w: 40, h: 20, type: 'spike' },
-+ 525                     { x: 340, y: 120, w: 160, h: 20, type: 'spike' },
-+ 526                     { x: 580, y: 280, w: 40, h: 20, type: 'spike' }
-+ 527                 ],
-+ 528                 coins: [
-+ 529                     { x: 150, y: 40, collected: false },
-+ 530                     { x: 540, y: 260, collected: false }
-+ 531                 ]
-+ 532             },
-+ 533             5: {
-+ 534                 spawn: { x: 360, y: 300 },
-+ 535                 platforms: [
-+ 536                     { x: 310, y: 360, w: 100, h: 40, type: 'floor' },
-+ 537                     { x: 200, y: 280, w: 60, h: 20, type: 'block' },
-+ 538                     { x: 450, y: 280, w: 60, h: 20, type: 'block' },
-+ 539                     { x: 100, y: 200, w: 60, h: 20, type: 'bouncy' },
-+ 540                     { x: 560, y: 200, w: 60, h: 20, type: 'bouncy' },
-+ 541                     { x: 310, y: 120, w: 100, h: 20, type: 'safe' },
-+ 542                     { x: 310, y: 40, w: 100, h: 30, type: 'exit' }
-+ 543                 ],
-+ 544                 hazards: [
-+ 545                     { x: 0, y: 340, w: 310, h: 60, type: 'spike' },
-+ 546                     { x: 410, y: 340, w: 310, h: 60, type: 'spike' },
-+ 547                     { x: 0, y: 0, w: 20, h: 400, type: 'spike' },
-+ 548                     { x: 700, y: 0, w: 20, h: 400, type: 'spike' }
-+ 549                 ],
-+ 550                 orbs: [
-+ 551                     { x: 50, y: 300, r: 20, vx: 2, vy: 1.5, color: '#ff006e', type: 'danger' },
-+ 552                     { x: 670, y: 200, r: 20, vx: -2.5, vy: 2, color: '#bf00ff', type: 'danger' },
-+ 553                     { x: 360, y: 200, r: 15, vx: 1.5, vy: -2, color: '#39ff14', type: 'safe' }
-+ 554                 ],
-+ 555                 coins: [
-+ 556                     { x: 360, y: 80, collected: false }
-+ 557                 ]
-+ 558             },
-+ 559             6: {
-+ 560                 spawn: { x: 50, y: 300 },
-+ 561                 platforms: [
-+ 562                     { x: 0, y: 360, w: 150, h: 40, type: 'floor' },
-+ 563                     { x: 0, y: 0, w: 20, h: 360, type: 'wall' },
-+ 564                     { x: 150, y: 100, w: 20, h: 260, type: 'wall' },
-+ 565         { x: 280, y: 0, w: 20, h: 300, type: 'wall' },
-+ 566                     { x: 410, y: 100, w: 20, h: 300, type: 'wall' },
-+ 567                     { x: 540, y: 0, w: 20, h: 260, type: 'wall' },
-+ 568                   x: 150, y: 360, w: 130, h: 40, type: 'floor' },
-+ 569                   280, y: 300, w: 130, h: 20, type: 'floor' },
-+ 570                     { x: 280, y: 360, w: 130, h: 40, type: 'floor' },
-+ 571                     { x: 410, y: 360, w: 130, h: 40, type: 'floor' },
-+ 572            40, y: 260, w: 80, h: 20, type: 'floor' },
-+ 573         { x: 540, y: 360, w: 180, h: 40, type: 'floor' },
-+ 574                     { x: 650, y: 180, w: 70, h: 80, type: 'exit' }
-+ 575        ],
-+ 576          hazards: [
-+ 577          { x: 60, y: 200, w: 80, h: 15, type: 'spike' },
-+ 578              x: 180, y: 250, w: 80, h: 15, type: 'spike' },
-+ 579              { x: 320, y: 150,: 15, type: 'spike' },
-+ 580                     { x: 450, y: 280, w: 70, h: 15, type: 'spike' },
-+ 581                     { x: 580, y: 340, w: 60, h: 20, type: 'spike' }
-+ 582                  butto: [
-+ 583                   y: 340, w: 30, h: 20, pressed: fget: 'remWall1' },
-+ 584           : 350, y: 28, h: 20ssed:rget: 'removeW         ],
-+ 585                 coins: [
-+ 586           { x: 2 collected: false },
-+ 587         { x: 480, y: 320, collected: false }            0, y: 140, c: false }
-+ 588                    },
-+ 589            
-+ 590      pa: {  30n        tforms: [
-+ 591            { x: 0, y: 360, w: 100, h: 40, type: 'floor' },
-+ 592                   : 140, y:: 50, h:'moving', ra80, speed: 2, axis:             x: 250, w: 50, h: 15,ving', range:ed: 2.5, ax
-+ 593                { x: 4 y: 180, w: 50, h: 15, type: 'movin 50, speexis: 'y' },
-+ 594             : 520, y: w: 60, 15, y' },           400, y:0,: 20, ty},
-+ 595         { x: 550, y:, h: pe: 'f             { x: 650, y: 70, h: 60, e:           ],
-+ 596          zards: [
-+ 597           { x: 1340, w: 4: 2: 'ske' 
-+ 598             { x: 2: 340, w:  type: 'spike'             { 0,: 100, w:, h:'spike' },
-+ 599           350, y: 4 he: 'spike
-+ 600             ],
-+ 601          
-+ 602               x: 28y: 200,ted: falsen              0, y20, collelse             ]
-+ 603      }
-+ 604       }      let le null;
-+ 605 
-+ 606       ionel(levelN        currenvel = levelNu   levelDparse(JSOgify[levelNum       Initiamoving platforms
-+ 607       if velDatalatfor         atatforms.forEa(p =>n       f (p.type =')               p.sta =                 p.sta = p.y;
-+ 608              p.o 0;
-+ 609               ption = 1          }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rage Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12122a;
+            --neon-pink: #ff006e;
+            --neon-cyan: #00f5ff;
+            --neon-green: #39ff14;
+            --neon-orange: #ff9500;
+            --neon-purple: #bf00ff;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+        }
+
+        .dark {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12122a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(45deg, transparent 48%, rgba(255, 0, 110, 0.03) 49%, rgba(255, 0, 110, 0.03) 51%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(0, 245, 255, 0.03) 49%, rgba(0, 245, 255, 0.03) 51%, transparent 52%);
+            background-size: 60px 60px;
+            animation: bgMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes bgMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 740px;
+            padding: 0 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan), var(--neon-green));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: textGlow 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+        }
+
+        @keyframes textGlow {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-icon {
+            font-size: 1.2em;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        #canvas-wrapper {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow:
+                0 0 30px rgba(0, 245, 255, 0.3),
+                0 0 60px rgba(255, 0, 110, 0.2),
+                inset 0 0 100px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.6rem, 2vw, 0.8rem);
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .controls-info {
+            display: flex;
+            gap: 15px;
+            font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-key {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+        }
+
+        .credits {
+            margin-top: 10px;
+            text-align: center;
+            font-size: clamp(0.5rem, 1.2vw, 0.65rem);
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        .credits span {
+            color: var(--neon-pink);
+        }
+
+        /* Mobile controls */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            touch-action: manipulation;
+            user-select: none;
+            transition: all 0.1s;
+        }
+
+        .control-btn:active {
+            background: rgba(0, 245, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .jump-btn {
+            width: 80px;
+            height: 80px;
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .jump-btn:active {
+            background: rgba(57, 255, 20, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+
+            .controls-info {
+                display: none;
+            }
+
+            .game-container {
+                padding-bottom: 120px;
+            }
+        }
+
+        /* Start screen overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            border-radius: 15px;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .overlay-text {
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .start-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            padding: 15px 40px;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 0, 110, 0.7);
+        }
+
+        .win-stats {
+            margin-top: 20px;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: var(--neon-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">RAGE GAME</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-icon">⏱️</span>
+                    <span class="stat-value" id="timer">0.00</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">💀</span>
+                    <span class="stat-value" id="deaths">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">🪙</span>
+                    <span class="stat-value" id="coins">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas" width="720" height="400"></canvas>
+            <div class="level-indicator" id="levelIndicator">LEVEL 1</div>
+
+            <div class="overlay" id="startOverlay">
+                <div class="overlay-title">RAGE GAME</div>
+                <div class="overlay-text">Navigate through deadly obstacles!<br>Can you beat all 7 levels?</div>
+                <button class="start-btn" id="startBtn">START GAME</button>
+            </div>
+
+            <div class="overlay hidden" id="winOverlay">
+                <div class="overlay-title">🎉 YOU WIN! 🎉</div>
+                <div class="win-stats" id="winStats"></div>
+                <button class="start-btn" id="restartBtn">PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <div class="control-key"><span class="key">←</span><span class="key">→</span> Move</div>
+            <div class="control-key"><span class="key">↑</span><span class="key">SPACE</span> Jump</div>
+            <div class="control-key"><span class="key">R</span> Restart Level</div>
+        </div>
+
+        <div class="credits">
+            Gameplay by <span>Oscar</span> • Web version by <span>Gaspard</span>
+        </div>
+    </div>
+
+    <div class="mobile-controls">
+        <div class="control-group">
+            <button class="control-btn" id="leftBtn">◀</button>
+            <button class="control-btn" id="rightBtn">▶</button>
+        </div>
+        <button class="control-btn jump-btn" id="jumpBtn">▲</button>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameRunning = false;
+        let currentLevel = 1;
+        let deaths = 0;
+        let coins = 0;
+        let timer = 0;
+        let timerInterval = null;
+
+        // Player
+        const player = {
+            x: 50,
+            y: 300,
+            width: 24,
+            height: 24,
+            vx: 0,
+            vy: 0,
+            onGround: false,
+            color: '#00f5ff'
+        };
+
+        // Physics
+        const GRAVITY = 0.6;
+        const JUMP_FORCE = -14;
+        const MOVE_SPEED = 5;
+        const FRICTION = 0.85;
+        const BOUNCE_FORCE = -18;
+
+        // Input
+        const keys = {
+            left: false,
+            right: false,
+            up: false
+        };
+
+        // Level definitions
+        const levels = {
+            1: {
+                spawn: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 360, w: 720, h: 40, type: 'floor' },
+                    { x: 150, y: 290, w: 80, h: 20, type: 'block' },
+                    { x: 280, y: 220, w: 80, h: 20, type: 'block' },
+                    { x: 420, y: 150, w: 100, h: 20, type: 'bouncy' },
+                    { x: 580, y: 280, w: 80, h: 20, type: 'block' },
+                    { x: 650, y: 200, w: 70, h: 160, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 100, y: 340, w: 40, h: 20, type: 'spike' },
+                    { x: 350, y: 340, w: 60, h: 20, type: 'spike' }
+                ],
+                coins: [
+                    { x: 190, y: 250, collected: false },
+                    { x: 460, y: 110, collected: false }
+                ]
+            },
+            2: {
+                spawn: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 360, w: 200, h: 40, type: 'floor' },
+                    { x: 250, y: 320, w: 60, h: 20, type: 'bouncy' },
+                    { x: 360, y: 250, w: 80, h: 20, type: 'block' },
+                    { x: 500, y: 180, w: 80, h: 20, type: 'block' },
+                    { x: 350, y: 120, w: 100, h: 20, type: 'bouncy' },
+                    { x: 150, y: 80, w: 80, h: 20, type: 'block' },
+                    { x: 0, y: 30, w: 80, h: 30, type: 'teleport', target: { x: 650, y: 300 } },
+                    { x: 620, y: 360, w: 100, h: 40, type: 'floor' },
+                    { x: 650, y: 280, w: 70, h: 80, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 200, y: 340, w: 50, h: 20, type: 'spike' },
+                    { x: 440, y: 230, w: 50, h: 20, type: 'spike' },
+                    { x: 580, y: 160, w: 40, h: 20, type: 'spike' }
+                ],
+                coins: [
+                    { x: 400, y: 80, collected: false },
+                    { x: 660, y: 240, collected: false }
+                ]
+            },
+            3: {
+                spawn: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 360, w: 150, h: 40, type: 'floor' },
+                    { x: 200, y: 320, w: 60, h: 20, type: 'block' },
+                    { x: 300, y: 270, w: 60, h: 20, type: 'block' },
+                    { x: 400, y: 220, w: 60, h: 20, type: 'block' },
+                    { x: 500, y: 170, w: 60, h: 20, type: 'bouncy' },
+                    { x: 400, y: 100, w: 80, h: 20, type: 'safe' },
+                    { x: 250, y: 60, w: 100, h: 20, type: 'safe' },
+                    { x: 80, y: 100, w: 80, h: 20, type: 'teleport', target: { x: 650, y: 100 } },
+                    { x: 600, y: 150, w: 120, h: 20, type: 'floor' },
+                    { x: 600, y: 360, w: 120, h: 40, type: 'floor' },
+                    { x: 650, y: 70, w: 70, h: 80, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 150, y: 340, w: 50, h: 20, type: 'spike' },
+                    { x: 260, y: 250, w: 40, h: 20, type: 'spike' },
+                    { x: 360, y: 200, w: 40, h: 20, type: 'spike' },
+                    { x: 560, y: 150, w: 30, h: 20, type: 'spike' }
+                ],
+                coins: [
+                    { x: 440, y: 60, collected: false },
+                    { x: 300, y: 20, collected: false },
+                    { x: 660, y: 320, collected: false }
+                ]
+            },
+            4: {
+                spawn: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 360, w: 100, h: 40, type: 'floor' },
+                    { x: 150, y: 360, w: 40, h: 40, type: 'bouncy' },
+                    { x: 250, y: 280, w: 80, h: 20, type: 'block' },
+                    { x: 380, y: 220, w: 80, h: 20, type: 'block' },
+                    { x: 250, y: 140, w: 80, h: 20, type: 'safe' },
+                    { x: 100, y: 80, w: 100, h: 20, type: 'block' },
+                    { x: 500, y: 300, w: 80, h: 20, type: 'safe' },
+                    { x: 620, y: 360, w: 100, h: 40, type: 'floor' },
+                    { x: 650, y: 280, w: 70, h: 80, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 100, y: 340, w: 50, h: 20, type: 'spike' },
+                    { x: 200, y: 340, w: 50, h: 20, type: 'spike' },
+                    { x: 330, y: 260, w: 50, h: 20, type: 'spike' },
+                    { x: 460, y: 200, w: 40, h: 20, type: 'spike' },
+                    { x: 340, y: 120, w: 160, h: 20, type: 'spike' },
+                    { x: 580, y: 280, w: 40, h: 20, type: 'spike' }
+                ],
+                coins: [
+                    { x: 150, y: 40, collected: false },
+                    { x: 540, y: 260, collected: false }
+                ]
+            },
+            5: {
+                spawn: { x: 360, y: 300 },
+                platforms: [
+                    { x: 310, y: 360, w: 100, h: 40, type: 'floor' },
+                    { x: 200, y: 280, w: 60, h: 20, type: 'block' },
+                    { x: 450, y: 280, w: 60, h: 20, type: 'block' },
+                    { x: 100, y: 200, w: 60, h: 20, type: 'bouncy' },
+                    { x: 560, y: 200, w: 60, h: 20, type: 'bouncy' },
+                    { x: 310, y: 120, w: 100, h: 20, type: 'safe' },
+                    { x: 310, y: 40, w: 100, h: 30, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 0, y: 340, w: 310, h: 60, type: 'spike' },
+                    { x: 410, y: 340, w: 310, h: 60, type: 'spike' },
+                    { x: 0, y: 0, w: 20, h: 400, type: 'spike' },
+                    { x: 700, y: 0, w: 20, h: 400, type: 'spike' }
+                ],
+                orbs: [
+                    { x: 50, y: 300, r: 20, vx: 2, vy: 1.5, color: '#ff006e', type: 'danger' },
+                    { x: 670, y: 200, r: 20, vx: -2.5, vy: 2, color: '#bf00ff', type: 'danger' },
+                    { x: 360, y: 200, r: 15, vx: 1.5, vy: -2, color: '#39ff14', type: 'safe' }
+                ],
+                coins: [
+                    { x: 360, y: 80, collected: false }
+                ]
+            },
+            6: {
+                spawn: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 360, w: 150, h: 40, type: 'floor' },
+                    { x: 0, y: 0, w: 20, h: 360, type: 'wall' },
+                    { x: 150, y: 100, w: 20, h: 260, type: 'wall' },
+                    { x: 280, y: 0, w: 20, h: 300, type: 'wall' },
+                    { x: 410, y: 100, w: 20, h: 300, type: 'wall' },
+                    { x: 540, y: 0, w: 20, h: 260, type: 'wall' },
+                    { x: 150, y: 360, w: 130, h: 40, type: 'floor' },
+                    { x: 280, y: 300, w: 130, h: 20, type: 'floor' },
+                    { x: 280, y: 360, w: 130, h: 40, type: 'floor' },
+                    { x: 410, y: 360, w: 130, h: 40, type: 'floor' },
+                    { x: 540, y: 260, w: 80, h: 20, type: 'floor' },
+                    { x: 540, y: 360, w: 180, h: 40, type: 'floor' },
+                    { x: 650, y: 180, w: 70, h: 80, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 60, y: 200, w: 80, h: 15, type: 'spike' },
+                    { x: 180, y: 250, w: 80, h: 15, type: 'spike' },
+                    { x: 320, y: 150, w: 60, h: 15, type: 'spike' },
+                    { x: 450, y: 280, w: 70, h: 15, type: 'spike' },
+                    { x: 580, y: 340, w: 60, h: 20, type: 'spike' }
+                ],
+                buttons: [
+                    { x: 100, y: 340, w: 30, h: 20, pressed: false, target: 'removeWall1' },
+                    { x: 350, y: 280, w: 30, h: 20, pressed: false, target: 'removeWall2' }
+                ],
+                coins: [
+                    { x: 220, y: 320, collected: false },
+                    { x: 480, y: 320, collected: false },
+                    { x: 660, y: 140, collected: false }
+                ]
+            },
+            7: {
+                spawn: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 360, w: 100, h: 40, type: 'floor' },
+                    { x: 140, y: 310, w: 50, h: 15, type: 'moving', range: 80, speed: 2, axis: 'y' },
+                    { x: 260, y: 250, w: 50, h: 15, type: 'moving', range: 60, speed: 2.5, axis: 'x' },
+                    { x: 400, y: 180, w: 50, h: 15, type: 'moving', range: 50, speed: 3, axis: 'y' },
+                    { x: 520, y: 120, w: 60, h: 15, type: 'bouncy' },
+                    { x: 400, y: 60, w: 80, h: 20, type: 'safe' },
+                    { x: 550, y: 360, w: 170, h: 40, type: 'floor' },
+                    { x: 650, y: 0, w: 70, h: 60, type: 'exit' }
+                ],
+                hazards: [
+                    { x: 100, y: 340, w: 40, h: 20, type: 'spike' },
+                    { x: 200, y: 340, w: 350, h: 60, type: 'spike' },
+                    { x: 480, y: 100, w: 40, h: 20, type: 'spike' },
+                    { x: 350, y: 40, w: 50, h: 20, type: 'spike' }
+                ],
+                coins: [
+                    { x: 285, y: 200, collected: false },
+                    { x: 440, y: 20, collected: false }
+                ]
+            }
+        };
+
+        let levelData = null;
+
+        function loadLevel(levelNum) {
+            currentLevel = levelNum;
+            levelData = JSON.parse(JSON.stringify(levels[levelNum]));
+
+            // Initialize moving platforms
+            if (levelData.platforms) {
+                levelData.platforms.forEach(p => {
+                    if (p.type === 'moving') {
+                        p.startX = p.x;
+                        p.startY = p.y;
+                        p.offset = 0;
+                        p.direction = 1;
+                    }
+                });
+            }
+
+            // Initialize orbs
+            if (levelData.orbs) {
+                levelData.orbs.forEach(orb => {
+                    orb.startX = orb.x;
+                    orb.startY = orb.y;
+                });
+            }
+
+            player.x = levelData.spawn.x;
+            player.y = levelData.spawn.y;
+            player.vx = 0;
+            player.vy = 0;
+
+            document.getElementById('levelIndicator').textContent = `LEVEL ${levelNum}`;
+        }
+
+        let deathFlash = 0;
+        let levelFlash = 0;
+
+        function resetLevel() {
+            deaths++;
+            document.getElementById('deaths').textContent = deaths;
+            player.x = levelData.spawn.x;
+            player.y = levelData.spawn.y;
+            player.vx = 0;
+            player.vy = 0;
+            deathFlash = 15; // Flash for 15 frames
+
+            // Reset buttons
+            if (levelData.buttons) {
+                levelData.buttons.forEach(btn => btn.pressed = false);
+            }
+
+            // Reset orbs to starting positions
+            if (levelData.orbs) {
+                levelData.orbs.forEach(orb => {
+                    orb.x = orb.startX;
+                    orb.y = orb.startY;
+                });
+            }
+        }
+
+        function nextLevel() {
+            if (currentLevel < 7) {
+                levelFlash = 20; // Green flash for level complete
+                loadLevel(currentLevel + 1);
+            } else {
+                winGame();
+            }
+        }
+
+        function winGame() {
+            gameRunning = false;
+            clearInterval(timerInterval);
+
+            const winOverlay = document.getElementById('winOverlay');
+            const winStats = document.getElementById('winStats');
+            winStats.innerHTML = `Time: ${timer.toFixed(2)}s<br>Deaths: ${deaths}<br>Coins: ${coins}/14`;
+            winOverlay.classList.remove('hidden');
+        }
+
+        function startGame() {
+            document.getElementById('startOverlay').classList.add('hidden');
+            document.getElementById('winOverlay').classList.add('hidden');
+
+            // Clear any existing timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            deaths = 0;
+            coins = 0;
+            timer = 0;
+            deathFlash = 0;
+            levelFlash = 0;
+            document.getElementById('deaths').textContent = '0';
+            document.getElementById('coins').textContent = '0';
+            document.getElementById('timer').textContent = '0.00';
+
+            loadLevel(1);
+            gameRunning = true;
+
+            timerInterval = setInterval(() => {
+                timer += 0.01;
+                document.getElementById('timer').textContent = timer.toFixed(2);
+            }, 10);
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Player movement
+            if (keys.left) player.vx = -MOVE_SPEED;
+            else if (keys.right) player.vx = MOVE_SPEED;
+            else player.vx *= FRICTION;
+
+            // Jump
+            if (keys.up && player.onGround) {
+                player.vy = JUMP_FORCE;
+                player.onGround = false;
+            }
+
+            // Gravity
+            player.vy += GRAVITY;
+
+            // Update moving platforms
+            if (levelData.platforms) {
+                levelData.platforms.forEach(p => {
+                    if (p.type === 'moving') {
+                        p.offset += p.speed * p.direction;
+                        if (Math.abs(p.offset) >= p.range) {
+                            p.direction *= -1;
+                        }
+                        if (p.axis === 'x') {
+                            p.x = p.startX + p.offset;
+                        } else {
+                            p.y = p.startY + p.offset;
+                        }
+                    }
+                });
+            }
+
+            // Update orbs
+            if (levelData.orbs) {
+                levelData.orbs.forEach(orb => {
+                    orb.x += orb.vx;
+                    orb.y += orb.vy;
+
+                    // Bounce off walls
+                    if (orb.x - orb.r < 20 || orb.x + orb.r > 700) orb.vx *= -1;
+                    if (orb.y - orb.r < 0 || orb.y + orb.r > 360) orb.vy *= -1;
+
+                    // Check collision with player
+                    const dx = player.x + player.width/2 - orb.x;
+                    const dy = player.y + player.height/2 - orb.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (dist < orb.r + player.width/2) {
+                        if (orb.type === 'danger') {
+                            resetLevel();
+                        }
+                    }
+                });
+            }
+
+            // Apply velocity
+            player.x += player.vx;
+            player.y += player.vy;
+
+            player.onGround = false;
+
+            // Platform collisions
+            levelData.platforms.forEach(p => {
+                if (p.type === 'exit') {
+                    if (rectCollision(player, p)) {
+                        nextLevel();
+                        return;
+                    }
+                    return;
+                }
+
+                if (p.type === 'teleport') {
+                    if (rectCollision(player, p)) {
+                        player.x = p.target.x;
+                        player.y = p.target.y;
+                        player.vy = 0;
+                        return;
+                    }
+                    return;
+                }
+
+                if (rectCollision(player, p)) {
+                    // Resolve collision
+                    const overlapX = Math.min(player.x + player.width - p.x, p.x + p.w - player.x);
+                    const overlapY = Math.min(player.y + player.height - p.y, p.y + p.h - player.y);
+
+                    if (overlapX < overlapY) {
+                        if (player.x < p.x) player.x = p.x - player.width;
+                        else player.x = p.x + p.w;
+                        player.vx = 0;
+                    } else {
+                        if (player.y < p.y) {
+                            player.y = p.y - player.height;
+                            player.onGround = true;
+                            if (p.type === 'bouncy') {
+                                player.vy = BOUNCE_FORCE;
+                                player.onGround = false;
+                            } else {
+                                player.vy = 0;
+                            }
+                        } else {
+                            player.y = p.y + p.h;
+                            player.vy = 0;
+                        }
+                    }
+                }
+            });
+
+            // Hazard collisions
+            levelData.hazards.forEach(h => {
+                if (rectCollision(player, { x: h.x, y: h.y, width: h.w, height: h.h })) {
+                    resetLevel();
+                }
+            });
+
+            // Button collisions
+            if (levelData.buttons) {
+                levelData.buttons.forEach(btn => {
+                    if (!btn.pressed && rectCollision(player, { x: btn.x, y: btn.y, width: btn.w, height: btn.h })) {
+                        btn.pressed = true;
+                    }
+                });
+            }
+
+            // Coin collisions
+            if (levelData.coins) {
+                levelData.coins.forEach(coin => {
+                    if (!coin.collected) {
+                        const dx = player.x + player.width/2 - coin.x;
+                        const dy = player.y + player.height/2 - coin.y;
+                        if (Math.sqrt(dx*dx + dy*dy) < 20) {
+                            coin.collected = true;
+                            coins++;
+                            document.getElementById('coins').textContent = coins;
+                        }
+                    }
+                });
+            }
+
+            // Boundaries
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y > canvas.height + 50) resetLevel();
+        }
+
+        function rectCollision(a, b) {
+            return a.x < b.x + (b.w || b.width) &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + (b.h || b.height) &&
+                   a.y + a.height > b.y;
+        }
+
+        function draw() {
+            // Clear and draw background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1a1a3e');
+            gradient.addColorStop(1, '#0a0a1a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            if (!levelData) return;
+
+            // Draw platforms
+            levelData.platforms.forEach(p => {
+                ctx.save();
+
+                switch(p.type) {
+                    case 'floor':
+                    case 'wall':
+                        ctx.fillStyle = '#2a2a4a';
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.strokeStyle = '#4a4a7a';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        break;
+                    case 'block':
+                        ctx.fillStyle = '#3a3a5a';
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.strokeStyle = '#5a5a8a';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        break;
+                    case 'bouncy':
+                        ctx.fillStyle = '#ff006e';
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.shadowColor = '#ff006e';
+                        ctx.shadowBlur = 15;
+                        ctx.strokeStyle = '#ff66a6';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        break;
+                    case 'safe':
+                        ctx.fillStyle = '#00aa55';
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.shadowColor = '#39ff14';
+                        ctx.shadowBlur = 10;
+                        ctx.strokeStyle = '#66ff99';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        break;
+                    case 'teleport':
+                        ctx.fillStyle = '#bf00ff';
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.shadowColor = '#bf00ff';
+                        ctx.shadowBlur = 20;
+                        ctx.strokeStyle = '#df66ff';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        // Draw swirl effect
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.beginPath();
+                        ctx.arc(p.x + p.w/2, p.y + p.h/2, 10, 0, Math.PI * 2);
+                        ctx.stroke();
+                        break;
+                    case 'exit':
+                        const exitGradient = ctx.createLinearGradient(p.x, p.y, p.x + p.w, p.y + p.h);
+                        exitGradient.addColorStop(0, '#39ff14');
+                        exitGradient.addColorStop(1, '#00ff88');
+                        ctx.fillStyle = exitGradient;
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.shadowColor = '#39ff14';
+                        ctx.shadowBlur = 25;
+                        ctx.strokeStyle = '#99ff99';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        // Draw arrow
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 24px Orbitron';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('→', p.x + p.w/2, p.y + p.h/2 + 8);
+                        break;
+                    case 'moving':
+                        ctx.fillStyle = '#ff9500';
+                        ctx.fillRect(p.x, p.y, p.w, p.h);
+                        ctx.shadowColor = '#ff9500';
+                        ctx.shadowBlur = 10;
+                        ctx.strokeStyle = '#ffbb66';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(p.x, p.y, p.w, p.h);
+                        break;
+                }
+                ctx.restore();
+            });
+
+            // Draw hazards
+            levelData.hazards.forEach(h => {
+                ctx.save();
+                ctx.fillStyle = '#ff3333';
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 10;
+
+                // Draw spikes
+                const spikeWidth = 15;
+                const numSpikes = Math.floor(h.w / spikeWidth);
+                for (let i = 0; i < numSpikes; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(h.x + i * spikeWidth, h.y + h.h);
+                    ctx.lineTo(h.x + i * spikeWidth + spikeWidth/2, h.y);
+                    ctx.lineTo(h.x + (i + 1) * spikeWidth, h.y + h.h);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            // Draw buttons
+            if (levelData.buttons) {
+                levelData.buttons.forEach(btn => {
+                    ctx.save();
+                    ctx.fillStyle = btn.pressed ? '#666666' : '#ffcc00';
+                    ctx.shadowColor = btn.pressed ? '#333333' : '#ffcc00';
+                    ctx.shadowBlur = btn.pressed ? 5 : 15;
+                    ctx.fillRect(btn.x, btn.y + (btn.pressed ? 10 : 0), btn.w, btn.h - (btn.pressed ? 10 : 0));
+                    ctx.restore();
+                });
+            }
+
+            // Draw orbs
+            if (levelData.orbs) {
+                levelData.orbs.forEach(orb => {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
+                    ctx.fillStyle = orb.color;
+                    ctx.shadowColor = orb.color;
+                    ctx.shadowBlur = 20;
+                    ctx.fill();
+
+                    // Inner glow
+                    ctx.beginPath();
+                    ctx.arc(orb.x, orb.y, orb.r * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.fill();
+                    ctx.restore();
+                });
+            }
+
+            // Draw coins
+            if (levelData.coins) {
+                levelData.coins.forEach(coin => {
+                    if (!coin.collected) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(coin.x, coin.y, 12, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ffd700';
+                        ctx.shadowColor = '#ffd700';
+                        ctx.shadowBlur = 15;
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.arc(coin.x, coin.y, 7, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ffee88';
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+            }
+
+            // Draw player
+            ctx.save();
+            ctx.fillStyle = player.color;
+            ctx.shadowColor = player.color;
+            ctx.shadowBlur = 20;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Player glow effect
+            ctx.strokeStyle = 'rgba(0, 245, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(player.x - 2, player.y - 2, player.width + 4, player.height + 4);
+
+            // Eyes
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(player.x + 5, player.y + 6, 4, 4);
+            ctx.fillRect(player.x + 15, player.y + 6, 4, 4);
+            ctx.restore();
+
+            // Death flash effect
+            if (deathFlash > 0) {
+                ctx.fillStyle = `rgba(255, 0, 0, ${deathFlash / 30})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                deathFlash--;
+            }
+
+            // Level complete flash effect
+            if (levelFlash > 0) {
+                ctx.fillStyle = `rgba(57, 255, 20, ${levelFlash / 40})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                levelFlash--;
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', e => {
+            // Prevent scrolling with arrow keys and space
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
+                e.preventDefault();
+            }
+
+            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') keys.up = true;
+            if (e.key === 'r' || e.key === 'R') {
+                if (gameRunning) resetLevel();
+            }
+            // Allow Enter/Space to start game from overlay
+            if ((e.key === 'Enter' || e.key === ' ') && !gameRunning) {
+                const startOverlay = document.getElementById('startOverlay');
+                const winOverlay = document.getElementById('winOverlay');
+                if (!startOverlay.classList.contains('hidden') || !winOverlay.classList.contains('hidden')) {
+                    startGame();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', e => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') keys.up = false;
+        });
+
+        // Mobile controls
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        function addTouchListeners(btn, key) {
+            btn.addEventListener('touchstart', e => {
+                e.preventDefault();
+                keys[key] = true;
+            }, { passive: false });
+            btn.addEventListener('touchend', e => {
+                e.preventDefault();
+                keys[key] = false;
+            }, { passive: false });
+            btn.addEventListener('touchcancel', () => {
+                keys[key] = false;
+            });
+            btn.addEventListener('mousedown', () => keys[key] = true);
+            btn.addEventListener('mouseup', () => keys[key] = false);
+            btn.addEventListener('mouseleave', () => keys[key] = false);
+        }
+
+        addTouchListeners(leftBtn, 'left');
+        addTouchListeners(rightBtn, 'right');
+        addTouchListeners(jumpBtn, 'up');
+
+        // Start/restart buttons
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+        // Responsive canvas
+        function resizeCanvas() {
+            const maxWidth = Math.min(window.innerWidth - 40, 720);
+            const scale = maxWidth / 720;
+            canvas.style.width = maxWidth + 'px';
+            canvas.style.height = (400 * scale) + 'px';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Initialize
+        gameLoop();
+    </script>
+</body>
+</html>
