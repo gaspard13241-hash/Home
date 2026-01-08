@@ -22,7 +22,7 @@ Une collection d'outils et de jeux simples, élégants et interactifs, développ
 | **PyPassword Generator** | Générez des mots de passe ultra-sécurisés avec lettres, symboles et chiffres. | [Générer](https://gaspard13241-hash.github.io/Home/PasswordGenerator) |
 | **Blackjack Game**     | Testez votre chance et votre stratégie contre le croupier.                  | [Jouer](https://gaspard13241-hash.github.io/Home/Blackjack)          |
 | **Hirst Spot Grid**    | Créez une grille artistique inspirée de Damien Hirst.                        | [Créer](https://gaspard13241-hash.github.io/Home/Hirst)               |
-| **Snake (Arcade)**     | Le jeu classique du serpent. Naviguez avec les flèches et évitez les obstacles ! | (Lien à ajouter) |
+| **Snake (Arcade)**     | Le jeu classique du serpent. Naviguez avec les flèches et évitez les obstacles ! | [Jouer](https://gaspard13241-hash.github.io/Home/Snake) |
 | **Calculateur de Moyennes** | Calculez vos moyennes scolaires facilement.                              | [Calculer](https://gaspard13241-hash.github.io/Home/moyennes)        |
 
 
