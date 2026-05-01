@@ -3,302 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flashcards CSV (Mode Sombre + Validation)</title>
+    <title>Étude | Minimalist Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #f5f5f5;
-            --container-bg: white;
-            --text-color: #333;
-            --card-front-bg: #4CAF50;
-            --card-back-bg: #2196F3;
-            --button-bg: #4CAF50;
-            --button-disabled-bg: #cccccc;
-        }
-
-        .dark-mode {
-            --bg-color: #1a1a1a;
-            --container-bg: #2d2d2d;
-            --text-color: #f0f0f0;
-            --card-front-bg: #2e7d32;
-            --card-back-bg: #1565c0;
-            --button-bg: #2e7d32;
-            --button-disabled-bg: #444;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            transition: background-color 0.3s, color 0.3s;
-            color: var(--text-color);
-        }
-
-        .container {
-            background-color: var(--container-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            padding: 25px;
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-
-        h1 {
-            color: var(--text-color);
-            margin-bottom: 20px;
-        }
-
-        .upload-section {
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        input[type="file"] {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            background-color: var(--container-bg);
-            color: var(--text-color);
-        }
-
-        button {
-            background-color: var(--button-bg);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-
-        button:hover:not(:disabled) {
-            opacity: 0.9;
-        }
-
-        button:disabled {
-            background-color: var(--button-disabled-bg);
-            cursor: not-allowed;
-        }
-
-        .flashcard-container {
-            margin: 20px 0;
-            min-height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .flashcard {
-            width: 100%;
-            height: 200px;
-            perspective: 1000px;
-            cursor: pointer;
-        }
-
-        .flashcard-inner {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .flashcard.flipped .flashcard-inner {
-            transform: rotateY(180deg);
-        }
-
-        .flashcard-front, .flashcard-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-            border-radius: 10px;
-        }
-
-        .flashcard-front {
-            background-color: var(--card-front-bg);
-            color: white;
-        }
-
-        .flashcard-back {
-            background-color: var(--card-back-bg);
-            color: white;
-            transform: rotateY(180deg);
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            gap: 15px;
-        }
-
-        #counter {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        .validation-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .validation-buttons button {
-            padding: 8px 15px;
-            font-size: 0.9em;
-        }
-
-        #trueBtn {
-            background-color: #4CAF50;
-        }
-
-        #falseBtn {
-            background-color: #f44336;
-        }
-
-        .stats {
-            margin-top: 20px;
-            font-size: 1em;
-            color: var(--text-color);
-        }
-
-        .toggle-dark-mode {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: var(--button-bg);
-            padding: 5px 10px;
-            font-size: 0.9em;
-        }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .flipped { transform: rotateY(180deg); }
+        .backface-hidden { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
     </style>
 </head>
-<body>
-    <div class="container">
-        <button class="toggle-dark-mode" id="darkModeToggle">🌙 Mode Sombre</button>
-        <h1>Flashcards depuis CSV</h1>
+<body class="bg-[#F9F9FB] text-[#1D1D1F]">
 
-        <div class="upload-section">
-            <input type="file" id="csvFile" accept=".csv" />
-            <button id="loadBtn">Charger le CSV</button>
+<div x-data="app()" class="max-w-xl mx-auto min-h-screen flex flex-col px-6 py-12">
+    
+    <!-- Header Minimaliste -->
+    <header class="flex justify-between items-center mb-12">
+        <div>
+            <h1 class="text-xl font-semibold tracking-tight">Étude</h1>
+            <p class="text-sm text-slate-400" x-text="mode === 'flash' ? 'Mode Flashcards' : 'Mode Vrai/Faux'"></p>
         </div>
+        <template x-if="cards.length > 0">
+            <button @click="toggleMode" class="text-xs font-medium px-4 py-2 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition">
+                Changer de mode
+            </button>
+        </template>
+    </header>
 
-        <div class="flashcard-container" id="flashcardContainer">
-            <p>Téléchargez un fichier CSV pour commencer.</p>
-        </div>
-
-        <div class="validation-buttons">
-            <button id="trueBtn" disabled>✅ Vrai</button>
-            <button id="falseBtn" disabled>❌ Faux</button>
-        </div>
-
-        <div class="navigation">
-            <button id="prevBtn" disabled>Précédent</button>
-            <span id="counter">0/0</span>
-            <button id="nextBtn" disabled>Suivant</button>
-        </div>
-
-        <div class="stats">
-            <p>Bonnes réponses : <span id="correctCount">0</span> | Mauvaises réponses : <span id="wrongCount">0</span></p>
+    <!-- État Initial : Import -->
+    <div x-show="cards.length === 0" class="flex-1 flex flex-col justify-center">
+        <div class="bg-white p-10 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <h2 class="text-lg font-medium mb-2">Importer vos cartes</h2>
+            <p class="text-sm text-slate-400 mb-8">Sélectionnez un fichier CSV (question, reponse)</p>
+            <input type="file" accept=".csv" @change="handleFileUpload" id="fileInput" class="hidden">
+            <label for="fileInput" class="inline-block px-8 py-3 bg-[#1D1D1F] text-white text-sm font-medium rounded-full cursor-pointer hover:bg-black transition">
+                Choisir un fichier
+            </label>
         </div>
     </div>
 
-    <script>
-        let flashcards = [];
-        let currentIndex = 0;
-        let correctCount = 0;
-        let wrongCount = 0;
-        let isDarkMode = false;
+    <!-- Interface d'apprentissage -->
+    <div x-show="cards.length > 0" x-cloak class="flex-1 flex flex-col">
+        
+        <!-- Barre de progression discrète -->
+        <div class="w-full bg-slate-200 h-1 rounded-full mb-12 overflow-hidden">
+            <div class="bg-indigo-500 h-full transition-all duration-500" :style="`width: ${((currentIndex + 1) / cards.length) * 100}%` text-align: center;"></div>
+        </div>
 
-        // Éléments DOM
-        const csvFileInput = document.getElementById('csvFile');
-        const loadBtn = document.getElementById('loadBtn');
-        const flashcardContainer = document.getElementById('flashcardContainer');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const counter = document.getElementById('counter');
-        const trueBtn = document.getElementById('trueBtn');
-        const falseBtn = document.getElementById('falseBtn');
-        const correctCountSpan = document.getElementById('correctCount');
-        const wrongCountSpan = document.getElementById('wrongCount');
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const body = document.body;
-
-        // Fonction pour basculer en mode sombre
-        function toggleDarkMode() {
-            isDarkMode = !isDarkMode;
-            body.classList.toggle('dark-mode');
-            darkModeToggle.textContent = isDarkMode ? '☀️ Mode Clair' : '🌙 Mode Sombre';
-        }
-
-        // Fonction pour lire le fichier CSV
-        function readCSV(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const content = e.target.result;
-                    const lines = content.split('\n');
-                    const cards = [];
-
-                    for (const line of lines) {
-                        if (line.trim() === '') continue;
-                        const [question, answer] = line.split(',');
-                        if (question && answer) {
-                            cards.push({
-                                question: question.trim(),
-                                answer: answer.trim(),
-                                isCorrect: null // Ajout d'un champ pour suivre si la réponse est correcte
-                            });
-                        }
-                    }
-                    resolve(cards);
-                };
-                reader.onerror = reject;
-                reader.readAsText(file);
-            });
-        }
-
-        // Fonction pour afficher une flashcard
-        function displayFlashcard(index) {
-            if (flashcards.length === 0) return;
-
-            const card = flashcards[index];
-            flashcardContainer.innerHTML = `
-                <div class="flashcard" onclick="flipCard()">
-                    <div class="flashcard-inner">
-                        <div class="flashcard-front">${card.question}</div>
-                        <div class="flashcard-back">${card.answer}</div>
+        <!-- MODE FLASHCARDS -->
+        <div x-show="mode === 'flash'" class="flex-1">
+            <div class="relative h-80 w-full cursor-pointer group" @click="isFlipped = !isFlipped">
+                <div class="card-inner w-full h-full relative" :class="isFlipped ? 'flipped' : ''">
+                    <!-- Recto -->
+                    <div class="backface-hidden absolute inset-0 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center justify-center p-8 text-center">
+                        <p class="text-xl font-light leading-relaxed" x-text="cards[currentIndex].question"></p>
+                    </div>
+                    <!-- Verso -->
+                    <div class="backface-hidden rotate-y-180 absolute inset-0 bg-indigo-600 text-white rounded-[2rem] shadow-lg flex items-center justify-center p-8 text-center">
+                        <p class="text-xl font-light leading-relaxed" x-text="cards[currentIndex].reponse"></p>
                     </div>
                 </div>
-            `;
+            </div>
+        </div>
 
-            counter.textContent = `${index + 1}/${flashcards.length}`;
-            prevBtn.disabled = index === 0;
-            nextBtn.disabled = index === flashcards.length - 1;
+        <!-- MODE VRAI / FAUX -->
+        <div x-show="mode === 'quiz'" class="flex-1 flex flex-col">
+            <div class="bg-white border border-slate-100 rounded-[2rem] p-10 shadow-sm mb-8 flex-1 flex flex-col justify-center text-center">
+                <span class="text-[10px] uppercase tracking-[0.2em] text-slate-400 mb-4 block">Est-ce correct ?</span>
+                <p class="text-lg font-medium mb-4" x-text="cards[currentIndex].question"></p>
+                <div class="h-px w-8 bg-slate-100 mx-auto mb-4"></div>
+                <p class="text-2xl text-indigo-600 font-light" x-text="quizProposition"></p>
+            </div>
 
-            // Réactiver les boutons de validation
-            trueBtn.disabled = false;
-            falseBtn.disabled = false;
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <button @click="checkAnswer(false)" class="py-4 rounded-2xl border border-slate-200 font-medium hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition">Faux</button>
+                <button @click="checkAnswer(true)" class="py-4 rounded-2xl border border-slate-200 font-medium hover:bg-green-50 hover:border-green-100 hover:text-green-600 transition">Vrai</button>
+            </div>
+            
+            <div x-show="feedback" 
+                 :class="feedback === 'correct' ? 'text-green-500' : 'text-red-500'"
+                 class="text-center text-sm font-medium mb-4 animate-bounce" 
+                 x-text="feedback === 'correct' ? 'Bien joué !' : 'Oups, mauvaise réponse'">
+            </div>
+        </div>
 
-            // Réinitialiser l'état de la carte (non retournée)
-            const flashcard = flashcardContainer.querySelector('.flashcard');
-            if (flashcard) {
+        <!-- Navigation Bas de page -->
+        <footer class="flex items-center justify-between mt-auto pt-8">
+            <button @click="prevCard" class="p-3 text-slate-400 hover:text-indigo-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span class="text-xs font-medium text-slate-400 tracking-widest" x-text="`${currentIndex + 1} / ${cards.length}`"></span>
+            <button @click="nextCard" class="p-3 text-slate-400 hover:text-indigo-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </footer>
+    </div>
+</div>
+
+<script>
+    function app() {
+        return {
+            cards: [],
+            currentIndex: 0,
+            isFlipped: false,
+            mode: 'flash', // 'flash' ou 'quiz'
+            quizProposition: '',
+            isCorrectProposition: true,
+            feedback: null,
+
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        this.cards = results.data.map(row => ({
+                            question: Object.values(row)[0],
+                            reponse: Object.values(row)[1]
+                        }));
+                        this.prepareQuiz();
+                    }
+                });
+            },
+
+            toggleMode() {
+                this.mode = this.mode === 'flash' ? 'quiz' : 'flash';
+                this.feedback = null;
+                this.prepareQuiz();
+            },
+
+            prepareQuiz() {
+                if (this.cards.length === 0) return;
+                this.isFlipped = false;
+                this.feedback = null;
+                
+                // 50% de chance de montrer la bonne réponse, 50% une mauvaise
+                this.isCorrectProposition = Math.random() > 0.5;
+                if (this.isCorrectProposition) {
+                    this.quizProposition = this.cards[this.currentIndex].reponse;
+                } else {
+                    let randomIndex;
+                    do {
+                        randomIndex = Math.floor(Math.random() * this.cards.length);
+                    } while (randomIndex === this.currentIndex && this.cards.length > 1);
+                    this.quizProposition = this.cards[randomIndex].reponse;
+                }
+            },
+
+            checkAnswer(userChoice) {
+                if (userChoice === this.isCorrectProposition) {
+                    this.feedback = 'correct';
+                    setTimeout(() => this.nextCard(), 800);
+                } else {
+                    this.feedback = 'wrong';
+                }
+            },
+
+            nextCard() {
+                if (this.currentIndex < this.cards.length - 1) {
+                    this.currentIndex++;
+                    this.prepareQuiz();
+                }
+            },
+
+            prevCard() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.prepareQuiz();
+                }
+            }
+        }
+    }
+</script>
+</body>
+</html>
