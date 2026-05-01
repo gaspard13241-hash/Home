@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards CSV (Version Simple)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .upload-section {
+            margin: 20px 0;
+        }
+        input[type="file"] {
+            margin-right: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .flashcard-container {
+            margin: 20px 0;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .flashcard {
+            width: 100%;
+            height: 200px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .flashcard-front {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .flashcard-back {
+            background-color: #2196F3;
+            color: white;
+            transform: rotateY(180deg);
+        }
+        .navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        #counter {
+            margin: 0 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flashcards depuis CSV</h1>
+
+        <div class="upload-section">
+            <input type="file" id="csvFile" accept=".csv" />
+            <button id="loadBtn">Charger le CSV</button>
+        </div>
+
+        <div class="flashcard-container" id="flashcardContainer">
+            <p>Téléchargez un fichier CSV pour commencer.</p>
+        </div>
+
+        <div class="navigation">
+            <button id="prevBtn" disabled>Précédent</button>
+            <span id="counter">0/0</span>
+            <button id="nextBtn" disabled>Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        let flashcards = [];
+        let currentIndex = 0;
+
+        const csvFileInput = document.getElementById('csvFile');
+        const loadBtn = document.getElementById('loadBtn');
+        const flashcardContainer = document.getElementById('flashcardContainer');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const counter = document.getElementById('counter');
+
+        function readCSV(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const lines = content.split('\n');
+                    const cards = [];
+
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+                        const [question, answer] = line.split(',');
+                        if (question && answer) {
+                            cards.push({ question: question.trim(), answer: answer.trim() });
+                        }
+                    }
+                    resolve(cards);
+                };
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function displayFlashcard(index) {
+            if (flashcards.length === 0) return;
+
+            const card = flashcards[index];
+            flashcardContainer.innerHTML = `
+                <div class="flashcard" onclick="flipCard()">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">${card.question}</div>
+                        <div class="flashcard-back">${card.answer}</div>
+                    </div>
+                </div>
+            `;
+
+            counter.textContent = `${index + 1}/${flashcards.length}`;
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === flashcards.length - 1;
+        }
+
+        function flipCard() {
+            const flashcard = flashcardContainer.querySelector('.flashcard');
+            flashcard.classList.toggle('flipped');
+        }
+
+        loadBtn.addEventListener('click', async () => {
+            const file = csvFileInput.files[0];
+            if (!file) {
+                alert('Veuillez sélectionner un fichier CSV.');
+                return;
+            }
+
+            try {
+                flashcards = await readCSV(file);
+                if (flashcards.length === 0) {
+                    alert('Le fichier CSV est vide ou mal formaté.');
+                    return;
+                }
+                currentIndex = 0;
+                displayFlashcard(currentIndex);
+                prevBtn.disabled = true;
+                nextBtn.disabled = flashcards.length <= 1;
+            } catch (error) {
+                alert('Erreur lors de la lecture du fichier CSV.');
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayFlashcard(currentIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < flashcards.length - 1) {
+                currentIndex++;
+                displayFlashcard(currentIndex);
+            }
+        });
+    </script>
+</body>
+</html>
