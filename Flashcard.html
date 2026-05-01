@@ -3,49 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flashcards CSV (Version Simple)</title>
+    <title>Flashcards CSV (Mode Sombre + Validation)</title>
     <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --container-bg: white;
+            --text-color: #333;
+            --card-front-bg: #4CAF50;
+            --card-back-bg: #2196F3;
+            --button-bg: #4CAF50;
+            --button-disabled-bg: #cccccc;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #f0f0f0;
+            --card-front-bg: #2e7d32;
+            --card-back-bg: #1565c0;
+            --button-bg: #2e7d32;
+            --button-disabled-bg: #444;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            color: var(--text-color);
         }
+
         .container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            background-color: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 25px;
             max-width: 600px;
             width: 100%;
             text-align: center;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
+
         h1 {
-            color: #333;
+            color: var(--text-color);
+            margin-bottom: 20px;
         }
+
         .upload-section {
             margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
+
         input[type="file"] {
-            margin-right: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: var(--container-bg);
+            color: var(--text-color);
         }
+
         button {
-            background-color: #4CAF50;
+            background-color: var(--button-bg);
             color: white;
             border: none;
             padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
             margin: 5px;
+            font-weight: bold;
+            transition: background-color 0.2s;
         }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
         button:disabled {
-            background-color: #cccccc;
+            background-color: var(--button-disabled-bg);
             cursor: not-allowed;
         }
+
         .flashcard-container {
             margin: 20px 0;
             min-height: 200px;
@@ -53,22 +97,28 @@
             justify-content: center;
             align-items: center;
         }
+
         .flashcard {
             width: 100%;
             height: 200px;
             perspective: 1000px;
             cursor: pointer;
         }
+
         .flashcard-inner {
             width: 100%;
             height: 100%;
             position: relative;
             transition: transform 0.6s;
             transform-style: preserve-3d;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
+
         .flashcard.flipped .flashcard-inner {
             transform: rotateY(180deg);
         }
+
         .flashcard-front, .flashcard-back {
             position: absolute;
             width: 100%;
@@ -77,34 +127,74 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             box-sizing: border-box;
+            border-radius: 10px;
         }
+
         .flashcard-front {
-            background-color: #4CAF50;
+            background-color: var(--card-front-bg);
             color: white;
         }
+
         .flashcard-back {
-            background-color: #2196F3;
+            background-color: var(--card-back-bg);
             color: white;
             transform: rotateY(180deg);
         }
+
         .navigation {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-top: 20px;
+            gap: 15px;
         }
+
         #counter {
-            margin: 0 20px;
             font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .validation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .validation-buttons button {
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+
+        #trueBtn {
+            background-color: #4CAF50;
+        }
+
+        #falseBtn {
+            background-color: #f44336;
+        }
+
+        .stats {
+            margin-top: 20px;
+            font-size: 1em;
+            color: var(--text-color);
+        }
+
+        .toggle-dark-mode {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--button-bg);
+            padding: 5px 10px;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <button class="toggle-dark-mode" id="darkModeToggle">🌙 Mode Sombre</button>
         <h1>Flashcards depuis CSV</h1>
 
         <div class="upload-section">
@@ -116,24 +206,51 @@
             <p>Téléchargez un fichier CSV pour commencer.</p>
         </div>
 
+        <div class="validation-buttons">
+            <button id="trueBtn" disabled>✅ Vrai</button>
+            <button id="falseBtn" disabled>❌ Faux</button>
+        </div>
+
         <div class="navigation">
             <button id="prevBtn" disabled>Précédent</button>
             <span id="counter">0/0</span>
             <button id="nextBtn" disabled>Suivant</button>
+        </div>
+
+        <div class="stats">
+            <p>Bonnes réponses : <span id="correctCount">0</span> | Mauvaises réponses : <span id="wrongCount">0</span></p>
         </div>
     </div>
 
     <script>
         let flashcards = [];
         let currentIndex = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let isDarkMode = false;
 
+        // Éléments DOM
         const csvFileInput = document.getElementById('csvFile');
         const loadBtn = document.getElementById('loadBtn');
         const flashcardContainer = document.getElementById('flashcardContainer');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const counter = document.getElementById('counter');
+        const trueBtn = document.getElementById('trueBtn');
+        const falseBtn = document.getElementById('falseBtn');
+        const correctCountSpan = document.getElementById('correctCount');
+        const wrongCountSpan = document.getElementById('wrongCount');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
 
+        // Fonction pour basculer en mode sombre
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            body.classList.toggle('dark-mode');
+            darkModeToggle.textContent = isDarkMode ? '☀️ Mode Clair' : '🌙 Mode Sombre';
+        }
+
+        // Fonction pour lire le fichier CSV
         function readCSV(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -146,7 +263,11 @@
                         if (line.trim() === '') continue;
                         const [question, answer] = line.split(',');
                         if (question && answer) {
-                            cards.push({ question: question.trim(), answer: answer.trim() });
+                            cards.push({
+                                question: question.trim(),
+                                answer: answer.trim(),
+                                isCorrect: null // Ajout d'un champ pour suivre si la réponse est correcte
+                            });
                         }
                     }
                     resolve(cards);
@@ -156,6 +277,7 @@
             });
         }
 
+        // Fonction pour afficher une flashcard
         function displayFlashcard(index) {
             if (flashcards.length === 0) return;
 
@@ -172,48 +294,11 @@
             counter.textContent = `${index + 1}/${flashcards.length}`;
             prevBtn.disabled = index === 0;
             nextBtn.disabled = index === flashcards.length - 1;
-        }
 
-        function flipCard() {
+            // Réactiver les boutons de validation
+            trueBtn.disabled = false;
+            falseBtn.disabled = false;
+
+            // Réinitialiser l'état de la carte (non retournée)
             const flashcard = flashcardContainer.querySelector('.flashcard');
-            flashcard.classList.toggle('flipped');
-        }
-
-        loadBtn.addEventListener('click', async () => {
-            const file = csvFileInput.files[0];
-            if (!file) {
-                alert('Veuillez sélectionner un fichier CSV.');
-                return;
-            }
-
-            try {
-                flashcards = await readCSV(file);
-                if (flashcards.length === 0) {
-                    alert('Le fichier CSV est vide ou mal formaté.');
-                    return;
-                }
-                currentIndex = 0;
-                displayFlashcard(currentIndex);
-                prevBtn.disabled = true;
-                nextBtn.disabled = flashcards.length <= 1;
-            } catch (error) {
-                alert('Erreur lors de la lecture du fichier CSV.');
-            }
-        });
-
-        prevBtn.addEventListener('click', () => {
-            if (currentIndex > 0) {
-                currentIndex--;
-                displayFlashcard(currentIndex);
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (currentIndex < flashcards.length - 1) {
-                currentIndex++;
-                displayFlashcard(currentIndex);
-            }
-        });
-    </script>
-</body>
-</html>
+            if (flashcard) {
