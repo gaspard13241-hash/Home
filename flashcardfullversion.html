@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étude | Minimalist Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .flipped { transform: rotateY(180deg); }
+        .backface-hidden { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="bg-[#F9F9FB] text-[#1D1D1F]">
+
+<div x-data="app()" x-init="init()" class="max-w-xl mx-auto min-h-screen flex flex-col px-6 py-12">
+    
+    <!-- Header Minimaliste -->
+    <header class="flex justify-between items-center mb-12">
+        <div>
+            <h1 class="text-xl font-semibold tracking-tight">Étude</h1>
+            <p class="text-sm text-slate-400" x-text="mode === 'flash' ? 'Mode Flashcards' : 'Mode Vrai/Faux'"></p>
+        </div>
+        <div class="flex space-x-2">
+            <button @click="toggleMode" class="text-xs font-medium px-4 py-2 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition">
+                Changer de mode
+            </button>
+            <input type="file" accept=".csv" @change="handleFileUpload" id="fileInput" class="hidden">
+            <label for="fileInput" class="inline-block px-4 py-2 bg-white border border-slate-200 text-xs font-medium rounded-full cursor-pointer hover:bg-slate-50 transition">
+                Importer CSV
+            </label>
+        </div>
+    </header>
+
+    <!-- Interface d'apprentissage -->
+    <div class="flex-1 flex flex-col">
+        
+        <!-- Barre de progression discrète -->
+        <div class="w-full bg-slate-200 h-1 rounded-full mb-12 overflow-hidden">
+            <div class="bg-indigo-500 h-full transition-all duration-500" :style="`width: ${((currentIndex + 1) / cards.length) * 100}%`"></div>
+        </div>
+
+        <!-- MODE FLASHCARDS -->
+        <div x-show="mode === 'flash'" class="flex-1">
+            <div class="relative h-80 w-full cursor-pointer group" @click="isFlipped = !isFlipped">
+                <div class="card-inner w-full h-full relative" :class="isFlipped ? 'flipped' : ''">
+                    <!-- Recto -->
+                    <div class="backface-hidden absolute inset-0 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center justify-center p-8 text-center">
+                        <p class="text-xl font-light leading-relaxed" x-text="cards[currentIndex].question"></p>
+                    </div>
+                    <!-- Verso -->
+                    <div class="backface-hidden rotate-y-180 absolute inset-0 bg-indigo-600 text-white rounded-[2rem] shadow-lg flex items-center justify-center p-8 text-center">
+                        <p class="text-xl font-light leading-relaxed" x-text="cards[currentIndex].reponse"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODE VRAI / FAUX -->
+        <div x-show="mode === 'quiz'" class="flex-1 flex flex-col">
+            <div class="bg-white border border-slate-100 rounded-[2rem] p-10 shadow-sm mb-8 flex-1 flex flex-col justify-center text-center">
+                <span class="text-[10px] uppercase tracking-[0.2em] text-slate-400 mb-4 block">Est-ce correct ?</span>
+                <p class="text-lg font-medium mb-4" x-text="cards[currentIndex].question"></p>
+                <div class="h-px w-8 bg-slate-100 mx-auto mb-4"></div>
+                <p class="text-2xl text-indigo-600 font-light" x-text="quizProposition"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <button @click="checkAnswer(false)" class="py-4 rounded-2xl border border-slate-200 font-medium hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition">Faux</button>
+                <button @click="checkAnswer(true)" class="py-4 rounded-2xl border border-slate-200 font-medium hover:bg-green-50 hover:border-green-100 hover:text-green-600 transition">Vrai</button>
+            </div>
+            
+            <div x-show="feedback" 
+                 :class="feedback === 'correct' ? 'text-green-500' : 'text-red-500'"
+                 class="text-center text-sm font-medium mb-4 animate-bounce" 
+                 x-text="feedback === 'correct' ? 'Bien joué !' : 'Oups, mauvaise réponse'">
+            </div>
+        </div>
+
+        <!-- Navigation Bas de page -->
+        <footer class="flex items-center justify-between mt-auto pt-8">
+            <button @click="prevCard" class="p-3 text-slate-400 hover:text-indigo-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span class="text-xs font-medium text-slate-400 tracking-widest" x-text="`${currentIndex + 1} / ${cards.length}`"></span>
+            <button @click="nextCard" class="p-3 text-slate-400 hover:text-indigo-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </footer>
+    </div>
+</div>
+
+<script>
+    function app() {
+        return {
+            cards: [],
+            currentIndex: 0,
+            isFlipped: false,
+            mode: 'flash', // 'flash' ou 'quiz'
+            quizProposition: '',
+            isCorrectProposition: true,
+            feedback: null,
+
+            // Initialize with all the flashcards
+            init() {
+                this.cards = [
+                    // Physique chimie cards
+                    { question: "Définition : Système (en physique)", reponse: "C'est l'objet spécifique que l'on étudie." },
+                    { question: "Qu'est-ce qu'un référentiel en cinématique ?", reponse: "C'est le point de vue choisi pour étudier le mouvement d'un objet." },
+                    { question: "Un mouvement est dit _____ car il dépend du référentiel choisi.", reponse: "relatif" },
+                    { question: "Quel référentiel a pour origine le centre de la Terre ?", reponse: "Le référentiel géocentrique." },
+                    { question: "Quel référentiel a pour origine le centre du Soleil ?", reponse: "Le référentiel héliocentrique." },
+                    { question: "Comment qualifie-t-on la trajectoire d'un objet qui se déplace en ligne droite ?", reponse: "Une trajectoire rectiligne." },
+                    { question: "Comment qualifie-t-on la trajectoire d'un objet qui se déplace selon un cercle ?", reponse: "Une trajectoire circulaire." },
+                    { question: "Trajectoire : Courbe quelconque", reponse: "Mouvement curviligne" },
+                    { question: "Si la vitesse d'un objet est constante, comment qualifie-t-on son mouvement ?", reponse: "Un mouvement uniforme." },
+                    { question: "Mouvement accéléré", reponse: "La vitesse de l'objet augmente au cours du temps." },
+                    { question: "Mouvement ralenti", reponse: "La vitesse de l'objet diminue au cours du temps." },
+                    { question: "Formule : Vitesse moyenne (v)", reponse: "v = d / Δt" },
+                    { question: "Dans la formule v = d / Δt, que représente la notation Δt ?", reponse: "La durée (ou intervalle de temps) du parcours." },
+                    { question: "Une action mécanique se modélise par une _____.", reponse: "force" },
+                    { question: "Quelles sont les 4 caractéristiques qui définissent une force ?", reponse: "La direction, le sens, l'intensité et le point d'application." },
+                    { question: "Quelle est l'unité de l'intensité d'une force ?", reponse: "Le Newton (symbole N)." },
+                    { question: "Quel instrument utilise-t-on pour mesurer l'intensité d'une force ?", reponse: "Un dynamomètre." },
+                    { question: "Où se situe le point d'application d'une force pour une action à distance ?", reponse: "Au centre de gravité de l'objet." },
+                    { question: "Dans un Diagramme Objet-Interaction (DOI), que représente une flèche ?", reponse: "Une interaction entre deux objets." },
+                    { question: "Conditions pour qu'un système à deux forces soit à l'équilibre ?", reponse: "Même direction et même intensité, mais des sens opposés." },
+                    { question: "Si un système à l'équilibre est en mouvement, quel est son type de mouvement ?", reponse: "Un mouvement rectiligne uniforme." },
+                    { question: "État de la matière : Solide", reponse: "Molécules liées et immobiles ; forme propre et incompressible." },
+                    { question: "État de la matière : Liquide", reponse: "Molécules peu liées et mobiles ; coule et épouse la forme." },
+                    { question: "État de la matière : Gaz", reponse: "Molécules très espacées et agitées ; compressible et expansible." },
+                    { question: "Lors d'un changement d'état, la _____ se conserve.", reponse: "masse" },
+                    { question: "Pourquoi le volume peut-il varier lors d'un changement d'état ?", reponse: "Parce que les espaces vides entre les molécules changent." },
+                    { question: "Définition : Corps pur", reponse: "Substance composée d'une seule sorte de molécules." },
+                    { question: "Définition : Mélange", reponse: "Substance composée de plusieurs sortes de molécules." },
+                    { question: "Comment appelle-t-on le passage de l'état solide à l'état liquide ?", reponse: "La fusion." },
+                    { question: "Comment appelle-t-on le passage de l'état liquide à l'état gazeux ?", reponse: "La vaporisation." },
+                    { question: "Comment appelle-t-on le passage de l'état gazeux à l'état liquide ?", reponse: "La liquéfaction." },
+                    { question: "Comment appelle-t-on le passage de l'état liquide à l'état solide ?", reponse: "La solidification." },
+                    { question: "Comment appelle-t-on le passage direct de l'état solide à l'état gazeux ?", reponse: "La sublimation." },
+                    { question: "Comment appelle-t-on le passage direct de l'état gazeux à l'état solide ?", reponse: "La condensation." },
+                    { question: "Formule : Masse volumique (ρ)", reponse: "ρ = m / V" },
+                    { question: "Sur une courbe de température, qu'indique un palier ?", reponse: "La présence d'un corps pur." },
+                    { question: "Quelle est la valeur du pH pour une solution neutre ?", reponse: "pH = 7" },
+                    { question: "Une solution est dite acide si son pH est _____.", reponse: "inférieur à 7 (pH < 7)" },
+                    { question: "Une solution est dite basique si son pH est _____.", reponse: "supérieur à 7 (pH > 7)" },
+                    { question: "Constituants principaux de l'air et proportions volumiques ?", reponse: "Diazote (N2) à 80% et Dioxygène (O2) à 20%." },
+                    { question: "Proportion simplifiée (fraction) du diazote dans l'air ?", reponse: "4/5 du volume." },
+                    { question: "Proportion simplifiée (fraction) du dioxygène dans l'air ?", reponse: "1/5 du volume." },
+                    { question: "Valeur de la masse volumique de l'air (conditions normales) ?", reponse: "1,3 g/L" },
+                    { question: "Citez une source de méthane (CH4) dans l'atmosphère.", reponse: "L'agriculture ou la décomposition." },
+                    { question: "Source principale de dioxyde de carbone (CO2) humaine ?", reponse: "La combustion." },
+                    { question: "Différence entre transformation physique et chimique ?", reponse: "Physique : molécules conservées ; Chimique : molécules changent." },
+                    { question: "Vrai ou Faux : La masse se conserve lors d'une transformation chimique.", reponse: "Vrai." },
+                    { question: "Dans un mélange, les molécules se _____.", reponse: "conservent" },
+                    { question: "Comment appelle-t-on les substances qui réagissent au début ?", reponse: "Les réactifs." },
+                    { question: "Comment appelle-t-on la nouvelle substance formée à la fin ?", reponse: "Le produit." },
+                    { question: "Concept : Molécule", reponse: "Particule invisible, indéformable, de dimensions et masse constantes." },
+
+                    // SVT cards
+                    { question: "Dans la nutrition des végétaux, quel tissu assure le transport de la sève brute ?", reponse: "Le xylème." },
+                    { question: "Quel est le rôle du phloème chez les plantes ?", reponse: "Transporter la sève élaborée." },
+                    { question: "Complétez l'équation de la photosynthèse : CO2 + H2O → _____ + O2.", reponse: "Matière organique" },
+                    { question: "Dans une symbiose végétale, que fournit la plante à son partenaire ?", reponse: "De la matière organique." },
+                    { question: "Dans une symbiose, quel élément le partenaire fournit-il à la plante ?", reponse: "De l'eau et des sels minéraux." },
+                    { question: "Quelle zone de la racine est responsable de l'absorption de l'eau et des sels minéraux ?", reponse: "La zone pilifère (poils absorbants)." },
+                    { question: "Comment appelle-t-on les cellules de la reproduction sexuée ?", reponse: "Les gamètes." },
+                    { question: "Quelle pièce florale porte le pollen contenant les cellules reproductrices mâles ?", reponse: "Les étamines." },
+                    { question: "Quelle partie de la fleur contient les ovules ?", reponse: "Le pistil." },
+                    { question: "Comment appelle-t-on le transport du grain de pollen jusqu'au pistil ?", reponse: "La pollinisation." },
+                    { question: "Quelle structure permet aux gamètes mâles de rejoindre les ovules après la germination du pollen ?", reponse: "Le tube pollinique." },
+                    { question: "La fusion du gamète mâle et du gamète femelle s'appelle la _____.", reponse: "fécondation" },
+                    { question: "Suite à la fécondation, en quoi l'ovule se transforme-t-il ?", reponse: "En graine." },
+                    { question: "Suite à la fécondation, en quoi le pistil se transforme-t-il ?", reponse: "En fruit." },
+                    { question: "Quels sont les trois principaux agents de transport des graines et des fruits ?", reponse: "L'eau, les animaux et le vent." },
+                    { question: "Comment appelle-t-on l'étape où la graine redonne un nouvel individu ?", reponse: "La germination." },
+                    { question: "Quel est le nom scientifique de la reproduction sans graines ni gamètes ?", reponse: "La reproduction asexuée (ou multiplication végétative)." },
+                    { question: "Comment les lentilles d'eau se multiplient-elles de manière asexuée ?", reponse: "Par bourgeonnement." },
+                    { question: "Par quel processus les végétaux unicellulaires se multiplient-ils ?", reponse: "Par division cellulaire (en deux)." },
+                    { question: "Citez deux exemples d'organes spécialisés permettant la multiplication végétative naturelle.", reponse: "Les stolons et les rhizomes (ou bulbes/tubercules)." },
+                    { question: "Vrai ou Faux : La reproduction asexuée peut se faire à partir d'une seule cellule.", reponse: "Vrai." },
+                    { question: "Nommez une technique de multiplication végétative réalisée par l'intervention de l'homme.", reponse: "Le bouturage (ou marcottage/greffage)." },
+                    { question: "Quelles substances chimiques facilitent la rencontre des partenaires chez certaines espèces animales ?", reponse: "Les phéromones." },
+                    { question: "Comment appelle-t-on l'acte qui favorise la rencontre des gamètes chez beaucoup d'animaux ?", reponse: "L'accouplement." },
+                    { question: "Où se déroule la fécondation interne ?", reponse: "À l'intérieur de l'organisme femelle." },
+                    { question: "Dans quel milieu de vie rencontre-t-on majoritairement la fécondation externe ?", reponse: "En milieu aquatique." },
+                    { question: "Comment la rencontre des gamètes est-elle favorisée lors d'une fécondation externe ?", reponse: "Par la libération d'un nombre élevé de gamètes." },
+                    { question: "Comment appelle-t-on une espèce dont l'embryon se développe dans un œuf à l'extérieur de la mère ?", reponse: "Ovipare." },
+                    { question: "Définition : Viviparité", reponse: "Mode de développement où l'embryon se développe dans l'organisme maternel qui assure sa nutrition." },
+                    { question: "Qu'est-ce que la dynamique des populations ?", reponse: "La variation du nombre d'individus d'une espèce dans un milieu au cours du temps." },
+                    { question: "Quel type de reproduction est privilégié quand les conditions du milieu sont défavorables ?", reponse: "La reproduction sexuée." },
+                    { question: "Pourquoi la reproduction asexuée permet-elle une invasion rapide d'un milieu ?", reponse: "Car elle produit des individus identiques très nombreux quand les conditions sont favorables." },
+                    { question: "Quel est l'avantage biologique de la reproduction sexuée lors d'un changement de milieu ?", reponse: "Elle crée une diversité d'individus, augmentant les chances de survie." },
+                    { question: "Comment la disponibilité en nourriture influence-t-elle la population ?", reponse: "Elle influe sur la fécondité (nombre de jeunes) et la survie des individus." },
+                    { question: "Citez deux facteurs physiques du milieu influençant la reproduction animale ou végétale.", reponse: "La température et l'oxygénation de l'eau." },
+                    { question: "Quel facteur biologique peut provoquer une diminution de l'effectif d'une population ?", reponse: "La présence de prédateurs." },
+                    { question: "Les individus issus d'une reproduction asexuée sont _____ entre eux.", reponse: "identiques" },
+                    { question: "Quelle partie de l'étamine contient précisément les grains de pollen ?", reponse: "L'anthère." },
+                    { question: "Comment appelle-t-on la tige qui supporte l'anthère dans une étamine ?", reponse: "Le filet." },
+                    { question: "Au sommet du pistil, quelle partie reçoit le pollen ?", reponse: "Le stigmate." },
+                    { question: "Dans le pistil, quelle partie relie le stigmate à l'ovaire ?", reponse: "Le style." },
+                    { question: "Quel organe de la fleur produit du nectar pour attirer les animaux pollinisateurs ?", reponse: "Le nectaire." },
+                    { question: "Concept : Dissémination", reponse: "Le transport des graines ou des fruits à distance de la plante mère pour coloniser de nouveaux milieux." },
+                    { question: "Quel est le résultat immédiat de la division d'une cellule-œuf ?", reponse: "Un embryon." },
+                    { question: "Pourquoi la reproduction sexuée assure-t-elle le maintien dans un milieu changeant ?", reponse: "Grâce à la diversité génétique des individus produits." },
+                    { question: "La sève brute est composée d'eau et de _____.", reponse: "sels minéraux" },
+                    { question: "Où se déroule principalement la photosynthèse dans une plante ?", reponse: "Dans les feuilles (parties vertes)." },
+                    { question: "Quel gaz est rejeté par les végétaux lors de la photosynthèse ?", reponse: "Le dioxygène (O2)." },
+                    { question: "Quel gaz est absorbé par les feuilles pour la photosynthèse ?", reponse: "Le dioxyde de carbone (CO2)." },
+                    { question: "La sève élaborée est riche en _____.", reponse: "matière organique" },
+                    { question: "Comment appelle-t-on les plantes à tiges rampantes permettant la reproduction asexuée ?", reponse: "Les plantes à stolons." },
+                    { question: "Le rhizome est une tige _____ permettant la multiplication végétative.", reponse: "souterraine" },
+                    { question: "Quel type de fécondation produit généralement un nombre d'individus moins important ?", reponse: "La fécondation interne." },
+                    { question: "Vrai ou Faux : Les conditions du milieu peuvent déterminer quel type de reproduction une espèce va privilégier.", reponse: "Vrai." },
+                    { question: "Qu'arrive-t-il à l'effectif d'une population si les conditions de survie et de reproduction sont optimales ?", reponse: "L'effectif augmente." },
+                    { question: "Dans le schéma d'une fleur, comment appelle-t-on les pièces protectrices souvent vertes à la base ?", reponse: "Les sépales." },
+                    { question: "Dans le schéma d'une fleur, comment appelle-t-on les pièces colorées qui entourent les organes reproducteurs ?", reponse: "Les pétales." },
+                    { question: "Quelle est la différence fondamentale entre fécondation et pollinisation ?", reponse: "La pollinisation est le transport du pollen, la fécondation est la fusion des gamètes." },
+                    { question: "Chez les animaux, que signifie une libération 'synchronisée' des gamètes ?", reponse: "Les mâles et les femelles libèrent leurs gamètes en même temps." },
+                    { question: "Quel est l'impact des températures extrêmes sur l'effectif d'une population ?", reponse: "Elles peuvent causer la disparition d'individus et faire diminuer l'effectif." },
+                    { question: "Le _____ est une technique humaine consistant à enterrer une partie d'une tige pour qu'elle s'enracine.", reponse: "marcottage" },
+                    { question: "Comment appelle-t-on les petites bulbilles qui se détachent pour former une nouvelle plante ?", reponse: "Des bulbilles." },
+                    { question: "Quelle source d'énergie est indispensable à la photosynthèse ?", reponse: "L'énergie lumineuse." },
+                    { question: "Que devient la cellule-œuf après plusieurs divisions ?", reponse: "Un embryon." },
+                    { question: "La _____ est le nombre de jeunes qui naissent dans une population.", reponse: "fécondité" },
+                    { question: "Parmi les rhizomes, stolons et tubercules, lequel est une tige aérienne rampante ?", reponse: "Le stolon." },
+                    { question: "Dans quel organe de la fleur se trouve la cellule reproductrice femelle ?", reponse: "L'ovule." },
+                    { question: "La reproduction _____ ne nécessite qu'un seul parent.", reponse: "asexuée" },
+                    { question: "Quel est l'avantage de la reproduction asexuée en milieu stable ?", reponse: "Elle permet une colonisation très rapide et efficace du milieu." },
+                    { question: "Pourquoi l'embryon est-il considéré comme vulnérable ?", reponse: "Car il est en cours de développement et nécessite protection et nutrition." },
+                    { question: "Quel facteur du milieu aquatique est crucial pour la survie des poissons ?", reponse: "L'oxygénation de l'eau." },
+                    { question: "Le _____ consiste à implanter un fragment de plante sur une autre plante pour qu'ils s'unissent.", reponse: "greffage" },
+                    { question: "Quel est le devenir d'une graine si elle tombe dans un milieu favorable ?", reponse: "Elle germe pour donner une nouvelle plante." },
+                    { question: "En milieu aérien, la rencontre des gamètes nécessite généralement un _____.", reponse: "accouplement" },
+                    { question: "Vrai ou Faux : La reproduction asexuée produit une grande diversité génétique.", reponse: "Faux." },
+
+                    // Technologie cards
+                    { question: "Par quoi commence obligatoirement toute formule dans un tableur ?", reponse: "Le signe égale (=)." },
+                    { question: "Dans un tableur, comment repère-t-on une cellule ?", reponse: "Par ses coordonnées (lettre de colonne et numéro de ligne)." },
+                    { question: "Quel opérateur est utilisé pour effectuer une multiplication dans un tableur ?", reponse: "L'astérisque (*)." },
+                    { question: "Quel opérateur est utilisé pour effectuer une division dans un tableur ?", reponse: "La barre oblique (/)." },
+                    { question: "Quelle fonction permet d'additionner automatiquement les valeurs des cellules A1 à A10 ?", reponse: """=SOMME(A1:A10)""" },
+                    { question: "Quelle fonction permet de calculer la valeur centrale d'une série de données de B2 à B20 ?", reponse: """=MOYENNE(B2:B20)""" },
+                    { question: "En programmation, quel est le rôle d'une boucle (répéter) ?", reponse: "Exécuter plusieurs fois la même suite d'instructions." },
+                    { question: "Comment appelle-t-on les instructions de type « Si... Alors... Sinon » ?", reponse: "Des structures ou instructions conditionnelles." },
+                    { question: "Qu'est-ce qu'une variable en algorithmique ?", reponse: "Une valeur stockée qui peut être modifiée par le programme." },
+                    { question: "Définition : Objet technique", reponse: "Objet fabriqué par l'être humain pour répondre à un besoin." },
+                    { question: "Qu'est-ce qu'un Système Technique (OST) ?", reponse: "Un ensemble d'objets techniques fonctionnant ensemble pour rendre un service." },
+                    { question: "À quelle question précise répond le « besoin » d'un objet ?", reponse: "La question « Pourquoi ? »." },
+                    { question: "Par quel type de mot doit commencer la formulation d'un besoin ?", reponse: "Un verbe à l'infinitif." },
+                    { question: "Que désigne l'acronyme « UX » ?", reponse: "L'expérience utilisateur (User eXperience)." },
+                    { question: "Qu'est-ce que le cycle de vie d'un objet technique ?", reponse: "L'ensemble des étapes de sa création jusqu'à son élimination." },
+                    { question: "Définition : Matières premières", reponse: "Ressources naturelles utilisées pour fabriquer un objet (ex: pétrole, fer)." },
+                    { question: "Qu'est-ce que l'impact environnemental d'un objet ?", reponse: "L'ensemble de ses effets sur l'environnement (pollution, gaz à effet de serre)." },
+                    { question: "Quelle opération permet de réutiliser les matières d'un objet pour en fabriquer de nouveaux ?", reponse: "Le recyclage." },
+                    { question: "Comment appelle-t-on l'usurpation d'identité par message pour voler des données sensibles ?", reponse: "Le hameçonnage (ou Phishing)." },
+                    { question: "Qu'est-ce qu'une attaque « Man in the Middle » (MitM) ?", reponse: "L'interception d'une communication entre deux parties pour dérober des infos." },
+                    { question: "Quelle cyberattaque teste automatiquement toutes les combinaisons pour casser un mot de passe ?", reponse: "L'attaque par force brute." },
+                    { question: "Quel est l'objectif d'une attaque DDoS ?", reponse: "Saturer un serveur par un trafic massif pour le rendre inaccessible." },
+                    { question: "Comment appelle-t-on le cryptage de données contre une demande de rançon ?", reponse: "Un rançongiciel (ou Ransomware)." },
+                    { question: "Qu'est-ce qu'une attaque par alternation (ADS) ?", reponse: "La dissimulation de code malveillant dans des fichiers sans en changer l'apparence." },
+                    { question: "Dans le triptyque C.I.D., que signifie le « C » ?", reponse: "Confidentialité (seuls les autorisés accèdent à l'information)." },
+                    { question: "Dans le triptyque C.I.D., que signifie l'« I » ?", reponse: "Intégrité (garantie que l'information n'est pas modifiée)." },
+                    { question: "Dans le triptyque C.I.D., que signifie le « D » ?", reponse: "Disponibilité (accès au service ou données quand nécessaire)." },
+                    { question: "Quelle topologie réseau relie chaque ordinateur à tous les autres ?", reponse: "La topologie maillée." },
+                    { question: "Quelle topologie réseau connecte tous les ordinateurs à un nœud central ?", reponse: "La topologie en étoile." },
+                    { question: "Quelle topologie réseau relie les ordinateurs les uns après les autres en boucle ?", reponse: "La topologie en anneau." },
+                    { question: "Quelle topologie réseau utilise une ligne centrale commune pour tous les postes ?", reponse: "La topologie en bus." },
+                    { question: "À quoi sert une adresse IP ?", reponse: "C'est un identifiant unique pour localiser un équipement sur le réseau." },
+                    { question: "En information binaire, que signifie un bit à 0 ?", reponse: "Le courant ne passe pas." },
+                    { question: "Qu'est-ce qu'une « trame » en informatique ?", reponse: "Un message (ou image) découpé en une suite de $0$ et de $1$." },
+                    { question: "Dans quel sens se lit le décodage d'une trame binaire ?", reponse: "De droite à gauche." },
+                    { question: "Lors de l'arrivée d'une trame binaire, où se situe le premier bit envoyé ?", reponse: "À droite de la suite de chiffres." },
+                    { question: "Quelles sont les trois étapes de la chaîne de l'information ?", reponse: "Acquérir, Traiter, Communiquer." },
+                    { question: "Quelles sont les quatre étapes de la chaîne de l'énergie ?", reponse: "Alimenter, Commander/Distribuer, Convertir, Transmettre." },
+                    { question: "Quelle étape de la chaîne d'énergie transforme l'énergie reçue en une autre forme ?", reponse: "Convertir." },
+                    { question: "À quoi sert l'IA de Perception ?", reponse: "Identifier des formes, des visages ou des sons." },
+                    { question: "Donnez un exemple d'usage pour l'IA de Classification/Prédiction.", reponse: "Un algorithme de recommandation de vidéos ou un diagnostic médical." },
+                    { question: "Qu'est-ce qu'une IA Générative (LLM) ?", reponse: "Une IA capable de produire des textes ou des images inédits (ex: ChatGPT)." },
+                    { question: "Qu'est-ce qu'un biais algorithmique en IA ?", reponse: "Une erreur d'analyse causée par un jeu de données déséquilibré ou stéréotypé." },
+                    { question: "Comment définit-on la cyberviolence ?", reponse: "L'usage d'outils numériques pour intimider, insulter ou menacer une personne." },
+                    { question: "Qu'est-ce que l'usurpation d'identité en ligne ?", reponse: "S'approprier délibérément l'identité d'un tiers (nom, photo) pour lui nuire." },
+                    { question: "Quelle est la fonction des cookies « tiers » (ou traqueurs) ?", reponse: "Espionner le parcours de site en site pour déduire un profil publicitaire." },
+                    { question: "À quoi servent les cookies « internes » d'un site ?", reponse: "Retenir un mot de passe ou un panier d'achat." },
+                    { question: "Dans la chaîne de l'énergie, quelle fonction suit directement « Convertir » ?", reponse: "Transmettre." },
+                    { question: "Dans une chaîne d'information, quelle fonction reçoit les informations extérieures ?", reponse: "Acquérir." },
+                    { question: "Comment appelle-t-on le fait qu'un service soit accessible dès qu'on en a besoin ?", reponse: "La disponibilité." },
+
+                    // Mathématiques cards
+                    { question: "Quelle est la mesure en degrés d'un angle droit ?", reponse: "90°" },
+                    { question: "Déterminer la moyenne de la série suivante : 8 - 10 - 11 - 11.", reponse: "10" },
+                    { question: "Dans un collège de 800 élèves, 25% portent des lunettes. Combien d'élèves ne portent pas de lunettes ?", reponse: "600" },
+                    { question: "Quel est le résultat du calcul du dixième du neuvième de 81 ?", reponse: "0,9" },
+                    { question: "Convertir une durée de 240 minutes en heures.", reponse: "4 h" },
+                    { question: "Déterminer la médiane de la série ordonnée : 6 - 8 - 12 - 15 - 19.", reponse: "12" },
+                    { question: "Une voiture roule à 90 km/h. Quel temps met-elle pour parcourir 45 km ?", reponse: "30 min" },
+                    { question: "Calculer la valeur de x² + 3x - 5 pour x = -2.", reponse: "-7" },
+                    { question: "Écrire le nombre 0,00045 en notation scientifique.", reponse: "4,5 × 10⁻⁴" },
+                    { question: "Écrire le nombre 7 200 000 en notation scientifique.", reponse: "7,2 × 10⁶" },
+                    { question: "Quelle est la valeur de la puissance 10⁻³ ?", reponse: "0,001" },
+                    { question: "Simplifier l'expression suivante : (10⁻¹ × 10⁵) / 10⁻².", reponse: "10⁶" },
+                    { question: "Calculer la valeur de l'expression 2x - 5 pour x = -3.", reponse: "-11" },
+                    { question: "Développer l'expression littérale : 3(2x - 1).", reponse: "6x - 3" },
+                    { question: "Développer et réduire l'expression : 3(2x - 1) + 3(2x + 1).", reponse: "12x" },
+                    { question: "Calculer mentalement le quotient de 125 ÷ 0,5.", reponse: "250" },
+                    { question: "Dans un triangle ABC rectangle en A (AB=6 cm, BC=10 cm), longueur de [AC] ?", reponse: "8 cm" },
+                    { question: "Quelle est la valeur du nombre -1 / 10,5⁰ ?", reponse: "-1" },
+                    { question: "Résoudre l'équation suivante : -3x + 4 = 19.", reponse: "x = -5" },
+                    { question: "Expression développée du périmètre d'un carré de côté x + 3 ?", reponse: "4x + 12" },
+                    { question: "La translation transforme A en A'. Si AB = 5 cm, longueur de [A'B'] ?", reponse: "5 cm" },
+                    { question: "La translation conserve-t-elle la mesure des angles ?", reponse: "Oui" },
+                    { question: "En calcul littéral, que signifie « réduire » une expression ?", reponse: "Regrouper les termes d'une même famille." },
+                    { question: "Règle d'or de la réduction d'une expression littérale ?", reponse: "On ne mélange jamais les familles (ex: 2x + 3 ≠ 5x)." },
+                    { question: "Compléter la formule de développement : k(a + b) = ...", reponse: "k × a + k × b" },
+                    { question: "Transformer une somme en produit s'appelle une _____.", reponse: "Factorisation" },
+                    { question: "Quelles sont les deux étapes principales pour résoudre une équation ?", reponse: "Isoler l'inconnue et conclure par une phrase claire." },
+                    { question: "Quelle est la formule de la vitesse moyenne ?", reponse: "v = d / t" },
+                    { question: "Justifier la proportionnalité dans un tableau ?", reponse: "Rapports (Ligne 2 / Ligne 1) tous égaux." },
+                    { question: "Nom du nombre k passant d'une grandeur proportionnelle à l'autre ?", reponse: "Coefficient de proportionnalité" },
+                    { question: "Forme de la représentation graphique de la proportionnalité ?", reponse: "Droite passant par l'origine du repère." },
+                    { question: "Appliquer un taux de p% à une valeur revient à multiplier par _____.", reponse: "p / 100" },
+                    { question: "Quelle est la formule pour calculer une échelle ?", reponse: "Distance Plan / Distance Réelle" },
+                    { question: "Dans le calcul des ratios, comment obtient-on la valeur d'une part ?", reponse: "P = S ÷ n (Total ÷ Nombre de parts)." },
+                    { question: "Énoncer le théorème de Pythagore pour ABC rectangle en A.", reponse: "BC² = AB² + AC²" },
+                    { question: "À quoi sert la réciproque du théorème de Pythagore ?", reponse: "À démontrer qu'un triangle est rectangle." },
+                    { question: "À quoi sert la contraposée du théorème de Pythagore ?", reponse: "À démontrer qu'un triangle n'est pas rectangle." },
+                    { question: "Dans un triangle, comment identifie-t-on l'hypoténuse ?", reponse: "Côté le plus long, face à l'angle droit." },
+                    { question: "En statistiques, qu'appelle-t-on l'« effectif total » ?", reponse: "Nombre total d'individus de la population." },
+                    { question: "Quelle est la formule de la fréquence d'une valeur ?", reponse: "Effectif de la valeur / Effectif total" },
+                    { question: "Comment calcule-t-on l'étendue d'une série statistique ?", reponse: "Plus grande valeur - Plus petite valeur." },
+                    { question: "Condition indispensable avant de déterminer la médiane ?", reponse: "Ranger les valeurs dans l'ordre croissant." },
+                    { question: "Déterminer la médiane si l'effectif total N est pair ?", reponse: "Moyenne des deux valeurs centrales." },
+                    { question: "Une translation transforme une figure par un _____.", reponse: "Glissement" },
+                    { question: "Citer trois éléments conservés par une translation.", reponse: "Alignement, longueurs et angles (ou aires)." },
+                    { question: "Comment appelle-t-on la flèche symbolisant une translation ?", reponse: "Un vecteur" },
+                    { question: "Dans l'algorithme, quelle condition teste-t-on sur le nombre N ?", reponse: "N > 15" },
+                    { question: "Si N = 14 dans l'algorithme, quel calcul effectue-t-on ?", reponse: "2(N + 10)" },
+                    { question: "Quel est le résultat final de l'algorithme pour N = 14 ?", reponse: "48" },
+                    { question: "Rectangle de dimensions x et 16 - 2x : expression du périmètre ?", reponse: "-2x + 32" },
+                    { question: "Type de triangle pour l'égalité cos²(α) + sin²(α) = 1 ?", reponse: "Un triangle rectangle." },
+                    { question: "Aire d'un rectangle de base 6,4 cm et de largeur 5 cm.", reponse: "32 cm²" },
+                    { question: "Volume pavé = 400 cm³, Aire base = 32 cm², quelle est sa hauteur ?", reponse: "12,5 cm" },
+                    { question: "Dans un problème de vitesse, que signifie naviguer à 1 nœud ?", reponse: "Parcourir 0,5 mètre en 1 seconde." },
+                    { question: "Distance d'un navire en 40s s'il avance à 246 m par tranche de 40s.", reponse: "246 m" },
+                    { question: "Comment appelle-t-on une égalité comportant une lettre inconnue ?", reponse: "Une équation" },
+                    { question: "Dans un triangle BDE rectangle en B, égalité de Pythagore ?", reponse: "ED² = BE² + BD²" },
+                    { question: "Si ED² = 85, valeur arrondie de ED au dixième ?", reponse: "9,2 cm" },
+                    { question: "Formule de l'aire d'un triangle avec une base b et une hauteur h ?", reponse: "(b × h) / 2" },
+                    { question: "Dans une série statistique, que représente le caractère ?", reponse: "Question posée ou aspect étudié." },
+                    { question: "600 min de sport en 14 jours : objectif d'1h/jour atteint ?", reponse: "Non (≈ 42,8 min/jour)." },
+                    { question: "Calculer : (5/11) × (121/25) × (15/33).", reponse: "1" },
+                    { question: "Calculer : (2/3 - 1/4) ÷ 5/12.", reponse: "1" },
+                    { question: "Résultat de (-18) ÷ [-3 × (-2)] × 3 × (-2) ?", reponse: "18" },
+                    { question: "Périmètre d'un carré de côté 2x quand x = 1,5 cm.", reponse: "12 cm" },
+                    { question: "Formule tableur pour 8 × A1 dans la cellule B2 ?", reponse: """=8*A1""" },
+                    { question: "Si une série a 7 valeurs, quelle est la médiane ?", reponse: "La 4ème valeur." },
+                    { question: "Qu'est-ce qu'une moyenne pondérée ?", reponse: "Valeurs multipliées par effectifs/coefficients." },
+                    { question: "Brique de jus de 344 mL (norme 345-355 mL) vendable ?", reponse: "Non" },
+                    { question: "Comment appelle-t-on le centre d'un carré ?", reponse: "Intersection des diagonales." },
+                    { question: "Transformation avec centre et demi-tour ?", reponse: "La symétrie centrale" },
+                    { question: "Tissu de 315 cm à couvrir de carrés de côté c : propriété de c ?", reponse: "c doit être un diviseur de 315." },
+                    { question: "Combien de carrés de 9 cm de côté en longueur sur 315 cm ?", reponse: "35" },
+                    { question: "Combien de carrés de 9 cm de côté en largeur sur 270 cm ?", reponse: "30" },
+                    { question: "Total de carrés (35 en longueur, 30 en largeur) ?", reponse: "1050" },
+                    { question: "Inverse du carré pour trouver une longueur (Pythagore) ?", reponse: "La racine carrée (√)" },
+                    { question: "Que signifie l'expression « au moins 5 km » ?", reponse: "Distance ≥ 5 km." },
+                    { question: "Moyenne de : 62, 59, 74, 68, 55, 61, 71.", reponse: "≈ 64,3" },
+                    { question: "Pot de colle de 0,2 kg à 5,70 €. Prix au kg ?", reponse: "28,50€" },
+                    { question: "Après une remise de 8%, coefficient multiplicateur ?", reponse: "0,92" },
+                    { question: "Triangle rectangle isocèle : propriété des côtés de l'angle droit ?", reponse: "Ils ont la même longueur." },
+
+                    // Français cards
+                    { question: "Quel est l'objectif principal de la littérature réaliste ?", reponse: "Représenter la réalité de l'époque sans l'embellir et témoigner de la vie quotidienne." },
+                    { question: "Dans le réalisme, quel outil sert à créer une 'illusion de vérité' ?", reponse: "L'utilisation de détails concrets (noms de lieux réels, prix, descriptions précises)." },
+                    { question: "Quel auteur réaliste est célèbre pour ses nouvelles à chute et son analyse psychologique ?", reponse: "Guy de Maupassant." },
+                    { question: "Quel mouvement littéraire, porté par Zola, analyse l'influence du milieu social sur l'individu ?", reponse: "Le Naturalisme." },
+                    { question: "Définition : Incipit", reponse: "Les premiers mots ou les premières pages d'une œuvre littéraire." },
+                    { question: "Définition : La chute (dans une nouvelle)", reponse: "Une fin brève et frappante qui remet souvent l'histoire en question." },
+                    { question: "Dans 'La Parure', quel sentiment Mathilde Loisel éprouve-t-elle principalement face à sa vie ?", reponse: "Un sentiment de détresse et de désespoir lié à son manque de luxe." },
+                    { question: "Dans une nouvelle, quelle est la différence entre une 'scène' et un 'résumé' ?", reponse: "La scène montre l'action en temps réel (dialogues), tandis que le résumé condense une longue période." },
+                    { question: "Qu'est-ce qu'un texte satirique ?", reponse: "Un texte qui critique un fait ou une personne en s'en moquant ou en le ridiculisant." },
+                    { question: "Dans 'Aux champs', quelle est la principale critique adressée aux d'Hubières par Maupassant ?", reponse: "Leur tendance à considérer les enfants paysans comme des objets que l'on peut acheter." },
+                    { question: "Point de vue narratif : Le narrateur est extérieur à l'histoire et ne connaît que ce qui est visible.", reponse: "Point de vue externe." },
+                    { question: "Point de vue narratif : Le narrateur voit à travers les yeux d'un personnage (pensées, sentiments).", reponse: "Point de vue interne." },
+                    { question: "Point de vue narratif : Le narrateur sait tout (passé, futur, pensées de tous les personnages).", reponse: "Point de vue omniscient." },
+                    { question: "Valeur du temps : Quel temps est utilisé pour les actions de premier plan et les ruptures ?", reponse: "Le passé simple." },
+                    { question: "Valeur du temps : Quel temps est utilisé pour les descriptions, les décors et les habitudes ?", reponse: "L'imparfait." },
+                    { question: "Le récit fantastique commence généralement dans un cadre _____.", reponse: "réaliste (normal et familier)." },
+                    { question: "Quelle est la deuxième étape d'un récit fantastique après l'établissement du cadre ?", reponse: "La création d'une atmosphère inquiétante ou insolite." },
+                    { question: "Qu'est-ce que 'l'intrusion du surnaturel' dans le fantastique ?", reponse: "L'apparition d'un événement impossible dans notre réalité." },
+                    { question: "Quel est l'élément essentiel qui définit la fin d'une œuvre fantastique ?", reponse: "Le doute (ou l'hésitation) entre une explication rationnelle et surnaturelle." },
+                    { question: "Dans le fantastique, quelle explication rationnelle est souvent liée à la santé du narrateur ?", reponse: "La folie ou l'hallucination (démence, schizophrénie)." },
+                    { question: "Citez trois catégories de thèmes surnaturels fréquents dans le fantastique.", reponse: "Les objets vivants, les fantômes/revenants et le thème du double." },
+                    { question: "Qu'est-ce qu'une sensation ?", reponse: "Une réaction physiologique immédiate perçue par les sens (ex: sensation de froid)." },
+                    { question: "Qu'est-ce qu'une émotion ?", reponse: "Un trouble affectif intense avec des manifestations physiques (pâleur, accélération du pouls)." },
+                    { question: "Citez trois manifestations physiques de la peur mentionnées dans le cours.", reponse: "Avoir des sueurs froides, claquer des dents, avoir la chair de poule." },
+                    { question: "Terme : Blêmir", reponse: "Devenir blême ou pâlir sous l'effet d'une émotion comme la peur." },
+                    { question: "Quelle est la différence entre une phrase simple et une phrase complexe ?", reponse: "La phrase simple contient un seul verbe conjugué, la phrase complexe en contient plusieurs." },
+                    { question: "Comment appelle-t-on deux propositions reliées par une virgule ou un point-virgule ?", reponse: "Des propositions juxtaposées." },
+                    { question: "Comment appelle-t-on deux propositions reliées par 'mais, ou, et, donc, or, ni, car' ?", reponse: "Des propositions coordonnées." },
+                    { question: "Une proposition qui dépend d'une proposition principale est une proposition _____.", reponse: "subordonnée." },
+                    { question: "Quel type de subordonnée complète un nom antécédent et commence par 'qui, que, dont, où' ?", reponse: "La proposition subordonnée relative." },
+                    { question: "Quel type de subordonnée complète souvent un verbe et a pour fonction COD ?", reponse: "La proposition subordonnée conjonctive complétive." },
+                    { question: "Dans la voix _____, le sujet subit l'action au lieu de la faire.", reponse: "passive." },
+                    { question: "Adjectif qualificatif : Quelle est la fonction d'un adjectif détaché du nom par une virgule ?", reponse: "Adjectif apposé." },
+                    { question: "Adjectif qualificatif : Quelle est la fonction d'un adjectif relié au nom par un verbe d'état ?", reponse: "Attribut du sujet." },
+                    { question: "Homophone : 'a' sans accent vs 'à' avec accent", reponse: "'a' est le verbe avoir (remplaçable par 'avait'), 'à' est une préposition." },
+                    { question: "Homophone : 'et' vs 'est'", reponse: "'et' est une conjonction (remplaçable par 'et puis'), 'est' est le verbe être (remplaçable par 'était')." },
+                    { question: "Homophone : 'ou' vs 'où'", reponse: "'ou' exprime le choix (ou bien), 'où' exprime souvent le lieu ou le temps." },
+                    { question: "Homophone : 'on' vs 'ont'", reponse: "'on' est un pronom (remplaçable par 'il'), 'ont' est le verbe avoir (remplaçable par 'avaient')." },
+                    { question: "Homophone : 'son' vs 'sont'", reponse: "'son' est un adjectif possessif (remplaçable par 'mon'), 'sont' est le verbe être (remplaçable par 'étaient')." },
+                    { question: "Homophone : 'ce' vs 'se'", reponse: "'ce' est devant un nom (démonstratif), 'se' est devant un verbe pronominal." },
+                    { question: "Quelle est la règle d'accord de 'leur' devant un verbe ?", reponse: "Il est invariable (pronom personnel) et ne prend jamais de 's'." },
+                    { question: "Quelle est la règle d'accord de 'leur' devant un nom ?", reponse: "C'est un adjectif possessif qui s'accorde en nombre avec le nom qui suit." },
+                    { question: "Homophone : 'ses' vs 'ces'", reponse: "'ses' marque la possession (les siens), 'ces' sert à montrer (démonstratif)." },
+                    { question: "Homophone : 'c'est' vs 's'est'", reponse: "'c'est' est présentatif (remplaçable par 'cela est'), 's'est' fait partie d'un verbe pronominal au passé composé." },
+                    { question: "Comment distingue-t-on 'sa' et 'ça' ?", reponse: "'sa' est un adjectif possessif (remplaçable par 'la sienne'), 'ça' est le pronom 'cela'." },
+                    { question: "Homophone : 'peu' vs 'peux/peut'", reponse: "'peu' signifie une petite quantité, 'peux/peut' est le verbe pouvoir au présent." },
+                    { question: "Homophone : 'quand' vs 'quant à'", reponse: "'quand' marque le temps (lorsque), 'quant à' signifie 'en ce qui concerne'." },
+                    { question: "Quelle figure de style établit un rapport de ressemblance à l'aide d'un mot-outil comme 'comme' ?", reponse: "La comparaison." },
+                    { question: "Quelle figure de style est une comparaison directe sans mot-outil ?", reponse: "La métaphore." },
+                    { question: "Quelle figure de style prête des caractéristiques humaines à un objet ou un animal ?", reponse: "La personnification." },
+                    { question: "Quelle figure de style consiste à exagérer pour frapper les esprits ?", reponse: "L'hyperbole." },
+                    { question: "Quelle figure de style atténue une réalité brutale ou désagréable (ex: 'il nous a quittés') ?", reponse: "L'euphémisme." },
+                    { question: "Quelle figure de style dit moins pour faire entendre plus (ex: 'Va, je ne te hais point') ?", reponse: "La litote." },
+                    { question: "Quelle figure de style répète un même mot en début de phrases ou de vers ?", reponse: "L'anaphore." },
+                    { question: "Quelle figure de style oppose deux termes de sens contraire dans une même phrase ?", reponse: "L'antithèse." },
+                    { question: "Quelle figure de style réunit deux mots de sens opposés dans un même groupe nominal (ex: 'un silence bruyant') ?", reponse: "L'oxymore." },
+                    { question: "Quelle figure de style remplace un mot par un autre selon un lien logique (ex: 'boire un verre') ?", reponse: "La métonymie." },
+                    { question: "Quelle figure de style remplace un mot par une expression qui le définit (ex: 'le roi des animaux') ?", reponse: "La périphrase." },
+                    { question: "Quel peintre est considéré comme le chef de file du réalisme en peinture ?", reponse: "Gustave Courbet." },
+                    { question: "Pourquoi le tableau 'Enterrement à Ornans' de Courbet a-t-il choqué à son époque ?", reponse: "À cause de sa grande taille pour un sujet banal de la vie quotidienne." },
+                    { question: "Dans le tableau 'Le Bar des Folies-Bergère' de Manet, quel contraste est mis en avant ?", reponse: "Le contraste entre la lassitude de la serveuse et l'amusement luxueux des clients." },
+                    { question: "Quel mode verbal est utilisé pour exprimer le réel et les faits certains ?", reponse: "L'indicatif." },
+                    { question: "Quel mode verbal exprime le virtuel, le souhait ou l'incertain ?", reponse: "Le subjonctif." },
+                    { question: "Quel mode verbal est utilisé pour l'hypothèse ou une demande polie ?", reponse: "Le conditionnel." },
+                    { question: "Quel mode verbal sert à donner un ordre ou un conseil ?", reponse: "L'impératif." },
+                    { question: "Formation : Quel mode impersonnel se forme avec 'En + participe présent' ?", reponse: "Le gérondif." },
+                    { question: "Dans l'analyse d'un verbe, quels sont les 4 éléments à préciser ?", reponse: "Le mode, le temps, la personne et la valeur." },
+                    { question: "Quelle est la terminaison de la 3e personne du pluriel à l'imparfait pour tous les verbes ?", reponse: "-aient." },
+                    { question: "À quel temps appartient la terminaison '-âmes' ou '-îmes' (ex: nous marchâmes) ?", reponse: "Au passé simple." },
+                    { question: "Comment appelle-t-on le rapprochement de mots aux sonorités proches (ex: 'Qui se ressemble s'assemble') ?", reponse: "La paronomase." },
+                    { question: "Figure de style : Une énumération de termes organisée de façon croissante ou décroissante.", reponse: "La gradation." },
+                    { question: "Homophone : 'mon' vs 'm'ont'", reponse: "'mon' est un adjectif possessif, 'm'ont' est le pronom 'me' suivi du verbe avoir." },
+                    { question: "Homophone : 'si' vs 's'y'", reponse: "'si' est une conjonction ou un adverbe, 's'y' est le pronom 'se' suivi de 'y' devant un verbe." },
+                    { question: "Homophone : 'sans' vs 's'en'", reponse: "'sans' indique le manque, 's'en' est le pronom 'se' suivi de 'en' devant un verbe." },
+                    { question: "Qu'est-ce qu'une question rhétorique ?", reponse: "Une affirmation déguisée sous forme de question qui n'attend pas de réponse." },
+                    { question: "Quelle figure de style consiste à dire le contraire de ce que l'on pense par ironie ?", reponse: "L'antiphrase." },
+                    { question: "Dans 'La Parure', quelle est la révélation finale (la chute) ?", reponse: "La parure prêtée par Mme Forestier était fausse et ne valait presque rien." },
+                    { question: "Pourquoi le fils Tuvache renie-t-il ses parents à la fin de 'Aux champs' ?", reponse: "Parce qu'ils ne l'ont pas vendu aux d'Hubières, le privant ainsi d'une vie riche." },
+                    { question: "Comment appelle-t-on une métaphore ou comparaison devenue banale (ex: 'un cœur de pierre') ?", reponse: "Un cliché." },
+                    { question: "Quelle est la particularité du radical de l'imparfait ?", reponse: "Il se base sur la 1re personne du pluriel du présent (nous)." }
+                ];
+                this.prepareQuiz();
+            },
+
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                Papa.parse(file, {
+                    header: false, // Assuming CSVs do not have a header row
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        // PapaParse results.data will be an array of arrays if header: false
+                        // Each inner array is a row, e.g., ["Question", "Answer"]
+                        this.cards = results.data.map(row => ({
+                            question: row[0],
+                            reponse: row[1]
+                        }));
+                        this.currentIndex = 0; // Reset index for new cards
+                        this.prepareQuiz();
+                    }
+                });
+            },
+
+            toggleMode() {
+                this.mode = this.mode === 'flash' ? 'quiz' : 'flash';
+                this.feedback = null;
+                this.prepareQuiz();
+            },
+
+            prepareQuiz() {
+                if (this.cards.length === 0) return;
+                this.isFlipped = false;
+                this.feedback = null;
+                
+                // 50% chance to show the correct answer, 50% a random wrong one
+                this.isCorrectProposition = Math.random() > 0.5;
+                if (this.isCorrectProposition) {
+                    this.quizProposition = this.cards[this.currentIndex].reponse;
+                } else {
+                    let randomIndex;
+                    do {
+                        randomIndex = Math.floor(Math.random() * this.cards.length);
+                    } while (randomIndex === this.currentIndex && this.cards.length > 1); // Ensure different card if possible
+                    this.quizProposition = this.cards[randomIndex].reponse;
+                }
+            },
+
+            checkAnswer(userChoice) {
+                if (userChoice === this.isCorrectProposition) {
+                    this.feedback = 'correct';
+                    setTimeout(() => this.nextCard(), 800);
+                } else {
+                    this.feedback = 'wrong';
+                }
+            },
+
+            nextCard() {
+                this.feedback = null; // Clear feedback before moving
+                if (this.currentIndex < this.cards.length - 1) {
+                    this.currentIndex++;
+                } else {
+                    this.currentIndex = 0; // Loop back to the beginning
+                }
+                this.prepareQuiz();
+            },
+
+            prevCard() {
+                this.feedback = null; // Clear feedback before moving
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                } else {
+                    this.currentIndex = this.cards.length - 1; // Loop to the end
+                }
+                this.prepareQuiz();
+            }
+        }
+    }
+</script>
+</body>
+</html>
