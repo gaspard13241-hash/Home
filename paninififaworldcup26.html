@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Album Page Range Searcher</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .search-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+            color: #1a73e8;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #dadce0;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: #1a73e8;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 18px;
+            display: none;
+        }
+        .success {
+            background-color: #e8f0fe;
+            color: #1967d2;
+            border: 1px solid #d2e3fc;
+            line-height: 1.6;
+        }
+        .error {
+            background-color: #fce8e6;
+            color: #c5221f;
+            border: 1px solid #fad2cf;
+        }
+        .page-number {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <h2>Album Page Searcher</h2>
+    <div class="input-group">
+        <input type="text" id="searchInput" placeholder="Enter Country Name or Code..." onkeypress="handleKeyPress(event)">
+        <button onclick="searchAlbum()">Search</button>
+    </div>
+    <div id="result" class="result-box"></div>
+</div>
+
+<script>
+// Attached data embedded directly into the script
+const teamData = [
+    { name: "Algeria", flag: "🇩🇿", code: "ALG", pages: "86–87" },
+    { name: "Argentina", flag: "🇦🇷", code: "ARG", pages: "84–85" },
+    { name: "Australia", flag: "🇦🇺", code: "AUS", pages: "40–41" },
+    { name: "Austria", flag: "🇦🇹", code: "AUT", pages: "88–89" },
+    { name: "Belgium", flag: "🇧🇪", code: "BEL", pages: "60–61" },
+    { name: "Bosnia and Herzegovina", flag: "🇧🇦", code: "BIH", pages: "22–23" },
+    { name: "Brazil", flag: "🇧🇷", code: "BRA", pages: "28–29" },
+    { name: "Cabo Verde", flag: "🇨🇻", code: "CPV", pages: "70–71" },
+    { name: "Canada", flag: "🇨🇦", code: "CAN", pages: "20–21" },
+    { name: "Colombia", flag: "🇨🇴", code: "COL", pages: "98–99" },
+    { name: "Côte d'Ivoire", flag: "🇨🇮", code: "CIV", pages: "48–49" },
+    { name: "Croatia", flag: "🇭🇷", code: "CRO", pages: "102–103" },
+    { name: "Curaçao", flag: "🇨🇼", code: "CUW", pages: "46–47" },
+    { name: "Czechia", flag: "🇨🇿", code: "CZE", pages: "18–19" },
+    { name: "DR Congo", flag: "🇨🇩", code: "COD", pages: "94–95" },
+    { name: "Ecuador", flag: "🇪🇨", code: "ECU", pages: "50–51" },
+    { name: "Egypt", flag: "🇪🇬", code: "EGY", pages: "62–63" },
+    { name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", code: "ENG", pages: "100–101" },
+    { name: "France", flag: "🇫🇷", code: "FRA", pages: "76–77" },
+    { name: "Germany", flag: "🇩🇪", code: "GER", pages: "44–45" },
+    { name: "Ghana", flag: "🇬🇭", code: "GHA", pages: "104–105" },
+    { name: "Haiti", flag: "🇭🇹", code: "HAI", pages: "32–33" },
+    { name: "Iran", flag: "🇮🇷", code: "IRN", pages: "64–65" },
+    { name: "Iraq", flag: "🇮🇶", code: "IRQ", pages: "80–81" },
+    { name: "Japan", flag: "🇯🇵", code: "JPN", pages: "54–55" },
+    { name: "Jordan", flag: "🇯🇴", code: "JOR", pages: "90–91" },
+    { name: "Mexico", flag: "🇲🇽", code: "MEX", pages: "12–13" },
+    { name: "Morocco", flag: "🇲🇦", code: "MAR", pages: "30–31" },
+    { name: "Netherlands", flag: "🇳🇱", code: "NED", pages: "52–53" },
+    { name: "New Zealand", flag: "🇳🇿", code: "NZL", pages: "66–67" },
+    { name: "Norway", flag: "🇳🇴", code: "NOR", pages: "82–83" },
+    { name: "Panama", flag: "🇵🇦", code: "PAN", pages: "106–107" },
+    { name: "Paraguay", flag: "🇵🇾", code: "PAR", pages: "38–39" },
+    { name: "Portugal", flag: "🇵🇹", code: "POR", pages: "92–93" },
+    { name: "Qatar", qat: "🇶🇦", code: "QAT", pages: "24–25" },
+    { name: "Saudi Arabia", flag: "🇸🇦", code: "KSA", pages: "72–73" },
+    { name: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", code: "SCO", pages: "34–35" },
+    { name: "Senegal", flag: "🇸🇳", code: "SEN", pages: "78–79" },
+    { name: "South Africa", flag: "🇿🇦", code: "RSA", pages: "14–15" },
+    { name: "South Korea", flag: "🇰🇷", code: "KOR", pages: "16–17" },
+    { name: "Spain", flag: "🇪🇸", code: "ESP", pages: "68–69" },
+    { name: "Sweden", flag: "🇸🇪", code: "SWE", pages: "56–57" },
+    { name: "Switzerland", flag: "🇨🇭", code: "SUI", pages: "26–27" },
+    { name: "Tunisia", flag: "🇹🇳", code: "TUN", pages: "58–59" },
+    { name: "Türkiye", flag: "🇹🇷", code: "TUR", pages: "42–43" },
+    { name: "United States", flag: "🇺🇸", code: "USA", pages: "36–37" },
+    { name: "Uruguay", flag: "🇺🇾", code: "URU", pages: "74–75" },
+    { name: "Uzbekistan", flag: "🇺🇿", code: "UZB", pages: "96–97" }
+];
+
+function searchAlbum() {
+    const query = document.getElementById("searchInput").value.trim().toLowerCase();
+    const resultBox = document.getElementById("result");
+    
+    if (!query) {
+        resultBox.style.display = "block";
+        resultBox.className = "result-box error";
+        resultBox.innerHTML = "Please enter a country name or code.";
+        return;
+    }
+    
+    // Find matching country name or code
+    const match = teamData.find(team => 
+        team.name.toLowerCase() === query || 
+        team.code.toLowerCase() === query
+    );
+    
+    if (match) {
+        resultBox.style.display = "block";
+        resultBox.className = "result-box success";
+        resultBox.innerHTML = `
+            <strong>${match.flag || ''} ${match.name} (${match.code})</strong>
+            <span class="page-number">Pages: ${match.pages}</span>
+        `;
+    } else {
+        resultBox.style.display = "block";
+        resultBox.className = "result-box error";
+        resultBox.innerHTML = `No match found for "${document.getElementById("searchInput").value}"`;
+    }
+}
+
+function handleKeyPress(event) {
+    if (event.key === "Enter") {
+        searchAlbum();
+    }
+}
+</script>
+
+</body>
+</html>
